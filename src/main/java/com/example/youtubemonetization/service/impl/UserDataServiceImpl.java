@@ -4,6 +4,7 @@ import com.example.youtubemonetization.entity.User;
 import com.example.youtubemonetization.exception.EntityNotFoundException;
 import com.example.youtubemonetization.repository.UserRepository;
 import com.example.youtubemonetization.service.UserDataService;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,12 @@ public class UserDataServiceImpl implements UserDataService {
     @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
 
     @Override
