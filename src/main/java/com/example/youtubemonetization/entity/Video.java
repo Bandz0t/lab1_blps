@@ -76,7 +76,7 @@ public class Video {
     @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
 

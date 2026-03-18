@@ -35,6 +35,12 @@ public class VideoDataServiceImpl implements VideoDataService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<Video> findAll() {
+        return videoRepository.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<Video> getByAuthorId(Long authorId) {
         return videoRepository.findByAuthorId(authorId);
     }
