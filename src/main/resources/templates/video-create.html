@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Загрузка видео</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<div class="page">
+    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
+    <main class="content narrow">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <section class="panel">
+            <div class="eyebrow">Экран 2</div>
+            <h2>Загрузка нового видео ⬆️</h2>
+            <p>Форма создает сущность <code>Video</code> и автоматически запускает BPMN-процесс.</p>
+            <form method="post" th:action="@{/videos/create}" th:object="${videoForm}" class="form-grid">
+                <input type="hidden" th:field="*{authorId}">
+                <label>
+                    Название
+                    <input type="text" th:field="*{title}" required>
+                </label>
+                <label>
+                    Формат
+                    <select th:field="*{format}">
+                        <option value="mp4">mp4</option>
+                        <option value="mov">mov</option>
+                        <option value="avi">avi</option>
+                        <option value="mkv">mkv (спровоцирует fail validation)</option>
+                    </select>
+                </label>
+                <label class="full-width">
+                    Описание
+                    <textarea th:field="*{description}" rows="4"></textarea>
+                </label>
+                <label>
+                    File path / mock file name
+                    <input type="text" th:field="*{filePath}" required>
+                </label>
+                <label>
+                    Размер файла (bytes)
+                    <input type="number" th:field="*{sizeBytes}" min="1" required>
+                </label>
+                <label>
+                    Длительность (сек.)
+                    <input type="number" th:field="*{durationSeconds}" min="1" required>
+                </label>
+                <div class="form-actions full-width">
+                    <a class="button button-secondary" th:href="@{/videos}">Назад</a>
+                    <button class="button" type="submit">Загрузить</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</div>
+</body>
+</html>

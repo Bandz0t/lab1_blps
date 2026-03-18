@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin panel</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<div class="page">
+    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
+    <main class="content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <section class="grid-2">
+            <article class="panel">
+                <div class="eyebrow">Экран 11</div>
+                <h2>Системная / demo-панель 🧪</h2>
+                <p>Через этот экран удобно показать преподавателю сервисные шаги BPMN и monthly revenue process.</p>
+                <form method="post" th:action="@{/admin/process-monthly}" th:object="${monthlyProcessForm}" class="form-grid">
+                    <label>
+                        Год
+                        <input type="number" th:field="*{year}" min="2000">
+                    </label>
+                    <label>
+                        Месяц
+                        <input type="number" th:field="*{month}" min="1" max="12">
+                    </label>
+                    <div class="form-actions full-width">
+                        <button class="button" type="submit">Рассчитать доход за месяц</button>
+                    </div>
+                </form>
+                <div class="action-list">
+                    <div>• Проверка авторских прав запускается из карточки видео.</div>
+                    <div>• Выбор монетизации доступен после copyright clearance.</div>
+                    <div>• Продолжение технического процесса доступно на BPMN-странице.</div>
+                </div>
+            </article>
+
+            <article class="panel">
+                <h3>Быстрые переходы</h3>
+                <div class="actions-column">
+                    <a th:href="@{/dashboard}">Открыть dashboard</a>
+                    <a th:href="@{/videos}">Открыть список видео</a>
+                    <a th:href="@{/revenues}">Открыть доходы</a>
+                    <a th:href="@{/payouts}">Открыть выплаты</a>
+                </div>
+                <h3 class="top-gap">Видео для demo-flow</h3>
+                <div class="mini-list" th:if="${!videos.isEmpty()}">
+                    <a class="mini-item" th:each="video : ${videos}" th:href="@{/videos/{id}(id=${video.id})}">
+                        <strong th:text="${video.title}">Video</strong>
+                        <span th:text="${@ui.humanStep(@ui.resolveCurrentStep(video))}">Step</span>
+                    </a>
+                </div>
+                <div class="empty-state" th:if="${videos.isEmpty()}">Сначала создайте хотя бы одно видео.</div>
+            </article>
+        </section>
+    </main>
+</div>
+</body>
+</html>

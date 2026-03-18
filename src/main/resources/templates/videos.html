@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Видео</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<div class="page">
+    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
+    <main class="content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <div class="eyebrow">Экран 3</div>
+                    <h2>Список видео автора 📼</h2>
+                </div>
+                <a class="button" th:href="@{/videos/create}">Загрузить видео</a>
+            </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Формат</th>
+                    <th>Upload</th>
+                    <th>Validation</th>
+                    <th>Copyright</th>
+                    <th>Monetization</th>
+                    <th>Создано</th>
+                    <th>Действия</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="video : ${videos}">
+                    <td th:text="${video.id}">1</td>
+                    <td>
+                        <div class="table-title" th:text="${video.title}">Title</div>
+                        <div class="muted" th:text="${@ui.humanStep(@ui.resolveCurrentStep(video))}">Current step</div>
+                    </td>
+                    <td th:text="${video.format}">mp4</td>
+                    <td><span th:class="${@ui.badgeClass(video.uploadStatus)}" th:text="${@ui.statusLabel(video.uploadStatus)}"></span></td>
+                    <td><span th:class="${@ui.badgeClass(video.validationStatus)}" th:text="${@ui.statusLabel(video.validationStatus)}"></span></td>
+                    <td><span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span></td>
+                    <td><span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span></td>
+                    <td th:text="${@ui.formatDateTime(video.createdAt)}">18.03.2026</td>
+                    <td>
+                        <div class="actions-column">
+                            <a th:href="@{/videos/{id}(id=${video.id})}">Открыть</a>
+                            <a th:href="@{/videos/{id}/edit(id=${video.id})}">Редактировать</a>
+                            <a th:href="@{/videos/{id}/monetization(id=${video.id})}">Монетизация</a>
+                            <a th:href="@{/processes/{videoId}(videoId=${video.id})}">BPMN</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${videos.isEmpty()}">
+                    <td colspan="9">Видео пока нет.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

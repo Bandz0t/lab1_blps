@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="header(currentPage, user)">
+    <div class="topbar">
+        <div>
+            <div class="eyebrow">YouTube Monetization Lab</div>
+            <h1>Авторский кабинет и BPMN demo-panel</h1>
+        </div>
+        <div class="topbar-meta">
+            <div><strong th:text="${user != null ? user.fullName : 'Demo Author'}">Demo Author</strong></div>
+            <div class="muted" th:text="${user != null ? user.channelName : 'Demo Channel'}">Demo Channel</div>
+        </div>
+    </div>
+    <nav class="nav">
+        <a th:href="@{/dashboard}" th:classappend="${currentPage == 'dashboard'} ? ' active'">Dashboard</a>
+        <a th:href="@{/videos}" th:classappend="${currentPage == 'videos'} ? ' active'">Видео</a>
+        <a th:href="@{/revenues}" th:classappend="${currentPage == 'revenues'} ? ' active'">Доходы</a>
+        <a th:href="@{/payouts}" th:classappend="${currentPage == 'payouts'} ? ' active'">Выплаты</a>
+        <a th:href="@{/admin}" th:classappend="${currentPage == 'admin'} ? ' active'">Admin</a>
+    </nav>
+</header>
+
+<div th:fragment="alerts">
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+</div>
+</body>
+</html>
