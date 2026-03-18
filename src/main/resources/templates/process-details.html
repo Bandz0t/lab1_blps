@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>BPMN статус</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<div class="page">
+    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
+    <main class="content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <div class="eyebrow">Экран 10</div>
+                    <h2>BPMN / системный статус ⚙️</h2>
+                </div>
+                <form method="post" th:action="@{/processes/{videoId}/continue(videoId=${video.id})}">
+                    <button class="button" type="submit">Продолжить процесс</button>
+                </form>
+            </div>
+
+            <div class="detail-grid">
+                <div>
+                    <dl class="details">
+                        <div><dt>videoId</dt><dd th:text="${processState.videoId}">1</dd></div>
+                        <div><dt>processInstanceId</dt><dd th:text="${processState.processInstanceId}">pid</dd></div>
+                        <div><dt>bpmnProcessKey</dt><dd th:text="${processState.bpmnProcessKey}">youtube_monetization_process</dd></div>
+                        <div><dt>currentStep</dt><dd th:text="${processState.currentStep}">STEP</dd></div>
+                        <div><dt>active</dt><dd th:text="${@ui.yesNo(processState.active)}">Да</dd></div>
+                    </dl>
+                </div>
+                <div>
+                    <h3>Process variables</h3>
+                    <dl class="details compact">
+                        <div><dt>isValid</dt><dd th:text="${video.validationStatus == T(com.example.youtubemonetization.enums.ValidationStatus).PASSED}">true</dd></div>
+                        <div><dt>hasCopyrightViolation</dt><dd th:text="${video.copyrightStatus == T(com.example.youtubemonetization.enums.CopyrightStatus).NEEDS_EDITING}">false</dd></div>
+                        <div><dt>monetizationAllowed</dt><dd th:text="${video.monetizationStatus == T(com.example.youtubemonetization.enums.MonetizationStatus).ENABLED}">false</dd></div>
+                        <div><dt>selectedMonetizationType</dt><dd th:text="${video.monetizationType}">NONE</dd></div>
+                        <div><dt>published</dt><dd th:text="${video.publishedAt != null}">false</dd></div>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="timeline">
+                <div th:class="${@ui.processStepClass(video, 'TECHNICAL_VALIDATION')}">Техническая проверка</div>
+                <div th:class="${@ui.processStepClass(video, 'COPYRIGHT_CHECK')}">Copyright</div>
+                <div th:class="${@ui.processStepClass(video, 'EDIT_REQUIRED')}">Edit loop</div>
+                <div th:class="${@ui.processStepClass(video, 'MONETIZATION')}">Monetization</div>
+                <div th:class="${@ui.processStepClass(video, 'PUBLISHED')}">Publication</div>
+                <div th:class="${@ui.processStepClass(video, 'REVENUE')}">Revenue</div>
+            </div>
+
+            <h3>История переходов / связанные события</h3>
+            <ul class="history-list">
+                <li>Video created: <span th:text="${@ui.formatDateTime(video.createdAt)}"></span></li>
+                <li>Validation status: <span th:text="${video.validationStatus}"></span></li>
+                <li>Copyright status: <span th:text="${video.copyrightStatus}"></span></li>
+                <li>Monetization status: <span th:text="${video.monetizationStatus}"></span></li>
+                <li th:each="claim : ${claims}">Claim <span th:text="${claim.id}"></span>: <span th:text="${claim.claimType}"></span> / <span th:text="${claim.status}"></span></li>
+            </ul>
+        </section>
+    </main>
+</div>
+</body>
+</html>

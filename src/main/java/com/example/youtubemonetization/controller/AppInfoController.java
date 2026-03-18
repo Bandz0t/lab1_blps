@@ -13,7 +13,7 @@ public class AppInfoController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("application", "youtube-monetization");
         response.put("status", "UP");
-        response.put("message", "Service is running. Use REST API endpoints under /api.");
+        response.put("message", "Service is running. Use REST API endpoints under /api or open /dashboard for the Thymeleaf GUI.");
         response.put("docs", new String[] {
                 "POST /api/videos",
                 "GET /api/videos/{id}",
@@ -23,7 +23,8 @@ public class AppInfoController {
                 "GET /api/users/{userId}/revenues",
                 "GET /api/users/{userId}/payouts",
                 "POST /api/payouts/process-monthly",
-                "GET /api/processes/{videoId}"
+                "GET /api/processes/{videoId}",
+                "GET /dashboard"
         });
         return response;
     }
