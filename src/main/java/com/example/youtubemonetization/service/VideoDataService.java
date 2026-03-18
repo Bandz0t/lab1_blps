@@ -13,6 +13,8 @@ public interface VideoDataService {
 
     Video getById(Long id);
 
+    List<Video> findAll();
+
     List<Video> getByAuthorId(Long authorId);
 
     List<Video> getByUploadStatus(UploadStatus uploadStatus);
