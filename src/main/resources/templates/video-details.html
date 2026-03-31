@@ -34,7 +34,7 @@
                         <div><dt>Размер</dt><dd th:text="${video.sizeBytes + ' bytes'}">0</dd></div>
                         <div><dt>Длительность</dt><dd th:text="${video.durationSeconds + ' sec'}">0</dd></div>
                         <div><dt>Дата загрузки</dt><dd th:text="${@ui.formatDateTime(video.createdAt)}">18.03.2026</dd></div>
-                        <div><dt>processInstanceId</dt><dd th:text="${video.processInstanceId}">pid</dd></div>
+                        <div><dt>workflowInstanceId</dt><dd th:text="${video.processInstanceId}">pid</dd></div>
                     </dl>
                 </div>
                 <div>
@@ -46,10 +46,10 @@
                         <span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span>
                     </div>
                     <dl class="details compact">
-                        <div><dt>Текущий BPMN шаг</dt><dd th:text="${@ui.humanStep(processState.currentStep)}">Step</dd></div>
+                        <div><dt>Текущий шаг публикации</dt><dd th:text="${@ui.humanStep(processState.currentStep)}">Step</dd></div>
                         <div><dt>Опубликовано</dt><dd th:text="${@ui.yesNo(video.publishedAt != null)}">Нет</dd></div>
                         <div><dt>Монетизация</dt><dd th:text="${video.monetizationType}">NONE</dd></div>
-                        <div><dt>BPMN key</dt><dd th:text="${processState.bpmnProcessKey}">youtube_monetization_process</dd></div>
+                        <div><dt>Ключ workflow</dt><dd th:text="${processState.bpmnProcessKey}">youtube_monetization_process</dd></div>
                     </dl>
                 </div>
             </div>
@@ -68,7 +68,7 @@
             <article class="panel">
                 <div class="panel-header">
                     <h3>Copyright check / claim flow</h3>
-                    <span class="muted">Экран для показа цикла BPMN 🔁</span>
+                    <span class="muted">Экран для отслеживания текущего цикла 🔁</span>
                 </div>
                 <form method="post" th:action="@{/videos/{id}/copyright-check(id=${video.id})}" th:object="${copyrightForm}" class="form-grid">
                     <label class="checkbox-row full-width">
@@ -110,7 +110,7 @@
             <article class="panel">
                 <div class="panel-header">
                     <h3>Доходы по видео</h3>
-                    <a th:href="@{/processes/{videoId}(videoId=${video.id})}">Открыть BPMN детали →</a>
+                    <a th:href="@{/processes/{videoId}(videoId=${video.id})}">Открыть детали обработки →</a>
                 </div>
                 <table>
                     <thead>
@@ -131,7 +131,7 @@
                         <td th:text="${@ui.money(revenue.amount, revenue.currency)}">0.00 USD</td>
                     </tr>
                     <tr th:if="${revenues.isEmpty()}">
-                        <td colspan="5">Доходы появятся после monthly process.</td>
+                        <td colspan="5">Доходы появятся после закрытия периода.</td>
                     </tr>
                     </tbody>
                 </table>
