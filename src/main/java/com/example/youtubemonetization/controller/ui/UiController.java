@@ -30,6 +30,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -189,10 +190,16 @@ public class UiController {
     }
 
     @GetMapping("/revenues")
-    public String revenues(Authentication authentication, Model model) {
+    public String revenues(
+            Authentication authentication,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            Model model
+    ) {
         User user = currentUser(authentication);
-        int actualYear = YearMonth.now().getYear();
-        int actualMonth = YearMonth.now().getMonthValue();
+        YearMonth selectedPeriod = resolveRevenuePeriod(user.getId(), year, month);
+        int actualYear = selectedPeriod.getYear();
+        int actualMonth = selectedPeriod.getMonthValue();
         model.addAttribute("currentPage", "revenues");
         model.addAttribute("user", user);
         model.addAttribute("stats", statsService.getAuthorStats(user.getId(), Optional.of(actualYear), Optional.of(actualMonth)));
@@ -301,5 +308,15 @@ public class UiController {
             return;
         }
         throw new IllegalStateException("Доступ только для модератора или администратора");
+    }
+
+    private YearMonth resolveRevenuePeriod(Long userId, Integer year, Integer month) {
+        if (year != null && month != null) {
+            return YearMonth.of(year, month);
+        }
+        return payoutDataService.getByUserId(userId).stream()
+                .map(payout -> YearMonth.of(payout.getPeriodYear(), payout.getPeriodMonth()))
+                .max(YearMonth::compareTo)
+                .orElse(YearMonth.now());
     }
 }
