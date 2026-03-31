@@ -13,7 +13,7 @@
         <section class="panel">
             <div class="eyebrow">Экран 6–7</div>
             <h2>Выбор монетизации 💸</h2>
-            <p><strong th:text="${video.title}">Video</strong> — после успешной copyright-check можно выбрать ad format.</p>
+            <p><strong th:text="${video.title}">Video</strong> — после успешной проверки авторских прав можно выбрать ad format.</p>
             <div class="status-stack bottom-gap">
                 <span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span>
                 <span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span>
