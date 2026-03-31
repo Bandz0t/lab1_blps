@@ -13,7 +13,7 @@
         <section class="panel">
             <div class="eyebrow">Экран 2</div>
             <h2>Загрузка нового видео ⬆️</h2>
-            <p>Форма создает сущность <code>Video</code> и автоматически запускает BPMN-процесс.</p>
+            <p>Форма создает сущность <code>Video</code> и автоматически запускает производственный цикл публикации.</p>
             <form method="post" th:action="@{/videos/create}" th:object="${videoForm}" class="form-grid">
                 <input type="hidden" th:field="*{authorId}">
                 <label>
