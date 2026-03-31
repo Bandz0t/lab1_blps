@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<div class="page" style="max-width: 640px; margin: 40px auto;">
+    <section class="panel">
+        <h2>Регистрация автора</h2>
+        <form th:action="@{/register}" method="post" th:object="${registerForm}" class="form-grid">
+            <div>
+                <label>Логин</label>
+                <input type="text" th:field="*{username}" required>
+                <small class="muted" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></small>
+            </div>
+            <div>
+                <label>Email</label>
+                <input type="email" th:field="*{email}" required>
+                <small class="muted" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+            </div>
+            <div>
+                <label>Полное имя</label>
+                <input type="text" th:field="*{fullName}" required>
+            </div>
+            <div>
+                <label>Название канала</label>
+                <input type="text" th:field="*{channelName}" required>
+            </div>
+            <div>
+                <label>Пароль</label>
+                <input type="password" th:field="*{password}" required>
+            </div>
+            <button class="button" type="submit">Создать аккаунт</button>
+            <a class="button button-secondary" th:href="@{/login}">Назад ко входу</a>
+        </form>
+    </section>
+</div>
+</body>
+</html>

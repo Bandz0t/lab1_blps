@@ -13,8 +13,8 @@
         <section class="grid-2">
             <article class="panel">
                 <div class="eyebrow">Экран 11</div>
-                <h2>Системная / demo-панель 🧪</h2>
-                <p>Через этот экран удобно показать преподавателю сервисные шаги BPMN и monthly revenue process.</p>
+                <h2>Операционная панель 🧪</h2>
+                <p>Через этот экран удобно выполнить сервисные действия и закрыть расчётный период.</p>
                 <form method="post" th:action="@{/admin/process-monthly}" th:object="${monthlyProcessForm}" class="form-grid">
                     <label>
                         Год
@@ -31,7 +31,7 @@
                 <div class="action-list">
                     <div>• Проверка авторских прав запускается из карточки видео.</div>
                     <div>• Выбор монетизации доступен после copyright clearance.</div>
-                    <div>• Продолжение технического процесса доступно на BPMN-странице.</div>
+                    <div>• Продолжение технического процесса доступно на странице деталей публикации.</div>
                 </div>
             </article>
 
@@ -43,7 +43,7 @@
                     <a th:href="@{/revenues}">Открыть доходы</a>
                     <a th:href="@{/payouts}">Открыть выплаты</a>
                 </div>
-                <h3 class="top-gap">Видео для demo-flow</h3>
+                <h3 class="top-gap">Видео для рабочего цикла</h3>
                 <div class="mini-list" th:if="${!videos.isEmpty()}">
                     <a class="mini-item" th:each="video : ${videos}" th:href="@{/videos/{id}(id=${video.id})}">
                         <strong th:text="${video.title}">Video</strong>

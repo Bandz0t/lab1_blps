@@ -2,7 +2,7 @@
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>BPMN статус</title>
+    <title>Статус публикации</title>
     <link rel="stylesheet" th:href="@{/app.css}">
 </head>
 <body>
@@ -14,7 +14,7 @@
             <div class="panel-header">
                 <div>
                     <div class="eyebrow">Экран 10</div>
-                    <h2>BPMN / системный статус ⚙️</h2>
+                    <h2>Системный статус публикации ⚙️</h2>
                 </div>
                 <form method="post" th:action="@{/processes/{videoId}/continue(videoId=${video.id})}">
                     <button class="button" type="submit">Продолжить процесс</button>
@@ -26,7 +26,7 @@
                     <dl class="details">
                         <div><dt>videoId</dt><dd th:text="${processState.videoId}">1</dd></div>
                         <div><dt>processInstanceId</dt><dd th:text="${processState.processInstanceId}">pid</dd></div>
-                        <div><dt>bpmnProcessKey</dt><dd th:text="${processState.bpmnProcessKey}">youtube_monetization_process</dd></div>
+                        <div><dt>workflowKey</dt><dd th:text="${processState.workflowKey}">youtube_monetization_process</dd></div>
                         <div><dt>currentStep</dt><dd th:text="${processState.currentStep}">STEP</dd></div>
                         <div><dt>active</dt><dd th:text="${@ui.yesNo(processState.active)}">Да</dd></div>
                     </dl>

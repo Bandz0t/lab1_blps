@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Вход</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<div class="page" style="max-width: 520px; margin: 40px auto;">
+    <section class="panel">
+        <h2>Вход в Creator Studio</h2>
+        <p class="muted">Войдите под своей ролью: автор, модератор или администратор.</p>
+
+        <div class="alert alert-danger" th:if="${param.error}">Неверный логин или пароль.</div>
+        <div class="alert alert-success" th:if="${param.logout}">Вы вышли из аккаунта.</div>
+        <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+
+        <form th:action="@{/login}" method="post" class="form-grid">
+            <div>
+                <label>Логин</label>
+                <input type="text" name="username" required>
+            </div>
+            <div>
+                <label>Пароль</label>
+                <input type="password" name="password" required>
+            </div>
+            <button class="button" type="submit">Войти</button>
+            <a class="button button-secondary" th:href="@{/register}">Регистрация</a>
+        </form>
+    </section>
+</div>
+</body>
+</html>

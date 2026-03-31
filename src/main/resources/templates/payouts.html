@@ -24,7 +24,10 @@
                 </thead>
                 <tbody>
                 <tr th:each="payout : ${payouts}">
-                    <td th:text="${payout.periodMonth + '/' + payout.periodYear}">3/2026</td>
+                    <td>
+                        <a th:href="@{/revenues(year=${payout.periodYear}, month=${payout.periodMonth})}"
+                           th:text="${payout.periodMonth + '/' + payout.periodYear}">3/2026</a>
+                    </td>
                     <td th:text="${@ui.money(payout.totalAmount, 'USD')}">0.00 USD</td>
                     <td><span th:class="${@ui.badgeClass(payout.status)}" th:text="${@ui.statusLabel(payout.status)}"></span></td>
                     <td th:text="${@ui.formatDateTime(payout.processedAt)}">18.03.2026</td>
