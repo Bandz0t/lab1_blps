@@ -13,5 +13,7 @@ public interface VideoService {
 
     List<Video> getVideos(Long authorId);
 
+    List<Video> getAllVideos();
+
     Video editVideo(Long id, EditVideoRequest request);
 }

@@ -66,6 +66,12 @@ public class VideoServiceImpl implements VideoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<Video> getAllVideos() {
+        return videoDataService.findAll();
+    }
+
+    @Override
     public Video editVideo(Long id, EditVideoRequest request) {
         Video video = videoDataService.getById(id);
         if (video.getCopyrightStatus() != CopyrightStatus.NEEDS_EDITING) {
