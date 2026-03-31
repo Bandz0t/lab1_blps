@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Панель модерации</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<div class="page">
+    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
+    <main class="content">
+        <div th:replace="~{fragments/layout :: alerts}"></div>
+
+        <section class="hero">
+            <div>
+                <div class="eyebrow">Роль: модератор / администратор</div>
+                <h2>Панель проверки прав и claim flow 🛡️</h2>
+                <p>Все действия по авторским правам вынесены из кабинета автора в эту служебную панель.</p>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h3>Видео для проверки</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Автор</th>
+                    <th>Текущий статус</th>
+                    <th>Действия модерации</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="video : ${videos}">
+                    <td th:text="${video.id}">1</td>
+                    <td>
+                        <a th:href="@{/videos/{id}(id=${video.id})}" th:text="${video.title}">Video</a>
+                    </td>
+                    <td th:text="${video.author != null ? video.author.fullName : '—'}">Author</td>
+                    <td>
+                        <span th:class="${@ui.badgeClass(video.copyrightStatus)}"
+                              th:text="${@ui.statusLabel(video.copyrightStatus)}"></span>
+                    </td>
+                    <td>
+                        <form method="post" th:action="@{/moderation/videos/{id}/copyright-check(id=${video.id})}" th:object="${copyrightForm}" class="form-grid">
+                            <label class="checkbox-row full-width">
+                                <input type="checkbox" th:field="*{hasViolation}">
+                                <span>Нарушение найдено</span>
+                            </label>
+                            <label>
+                                Claim type
+                                <select th:field="*{claimType}">
+                                    <option value="">Без claim</option>
+                                    <option th:each="type : ${T(com.example.youtubemonetization.enums.ClaimType).values()}"
+                                            th:value="${type}" th:text="${type}"></option>
+                                </select>
+                            </label>
+                            <label>
+                                Detected fragment
+                                <input type="text" th:field="*{detectedFragment}">
+                            </label>
+                            <label class="full-width">
+                                Комментарий модератора
+                                <textarea th:field="*{description}" rows="2"></textarea>
+                            </label>
+                            <button class="button" type="submit">Применить проверку</button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${videos.isEmpty()}">
+                    <td colspan="5">Нет видео для модерации.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

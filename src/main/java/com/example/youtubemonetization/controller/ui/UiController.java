@@ -112,12 +112,18 @@ public class UiController {
         model.addAttribute("claims", claims);
         model.addAttribute("processState", processService.getProcessState(id));
         model.addAttribute("revenues", revenueService.getByVideo(id));
-        model.addAttribute("copyrightForm", new CopyrightCheckRequest());
         return "video-details";
     }
 
-    @PostMapping("/videos/{id}/copyright-check")
-    public String copyrightCheck(@PathVariable Long id, CopyrightCheckRequest request, RedirectAttributes redirectAttributes) {
+    @PostMapping("/moderation/videos/{id}/copyright-check")
+    public String copyrightCheck(
+            Authentication authentication,
+            @PathVariable Long id,
+            CopyrightCheckRequest request,
+            RedirectAttributes redirectAttributes
+    ) {
+        User user = currentUser(authentication);
+        assertModeratorOrAdmin(user);
         try {
             copyrightService.processCopyrightCheck(id, request);
             redirectAttributes.addFlashAttribute("successMessage", request.isHasViolation()
@@ -126,7 +132,7 @@ public class UiController {
         } catch (RuntimeException ex) {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
         }
-        return "redirect:/videos/" + id;
+        return "redirect:/moderation";
     }
 
     @GetMapping("/videos/{id}/edit")
@@ -218,6 +224,17 @@ public class UiController {
         return "process-details";
     }
 
+    @GetMapping("/moderation")
+    public String moderation(Authentication authentication, Model model) {
+        User user = currentUser(authentication);
+        assertModeratorOrAdmin(user);
+        model.addAttribute("currentPage", "moderation");
+        model.addAttribute("user", user);
+        model.addAttribute("videos", videoService.getAllVideos());
+        model.addAttribute("copyrightForm", new CopyrightCheckRequest());
+        return "moderation";
+    }
+
     @PostMapping("/processes/{videoId}/continue")
     public String continueProcess(@PathVariable Long videoId, RedirectAttributes redirectAttributes) {
         try {
@@ -277,5 +294,12 @@ public class UiController {
             return;
         }
         throw new IllegalStateException("Недостаточно прав для просмотра этого видео");
+    }
+
+    private void assertModeratorOrAdmin(User user) {
+        if ("ADMIN".equals(user.getRole()) || "MODERATOR".equals(user.getRole())) {
+            return;
+        }
+        throw new IllegalStateException("Доступ только для модератора или администратора");
     }
 }

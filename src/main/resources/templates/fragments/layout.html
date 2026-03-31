@@ -17,6 +17,7 @@
         <a th:href="@{/videos}" th:classappend="${currentPage == 'videos'} ? ' active'">Видео</a>
         <a th:href="@{/revenues}" th:classappend="${currentPage == 'revenues'} ? ' active'">Доходы</a>
         <a th:href="@{/payouts}" th:classappend="${currentPage == 'payouts'} ? ' active'">Выплаты</a>
+        <a th:if="${user != null and (user.role == 'MODERATOR' or user.role == 'ADMIN')}" th:href="@{/moderation}" th:classappend="${currentPage == 'moderation'} ? ' active'">Модерация</a>
         <a th:if="${user != null and user.role == 'ADMIN'}" th:href="@{/admin}" th:classappend="${currentPage == 'admin'} ? ' active'">Admin</a>
         <form th:action="@{/logout}" method="post" style="margin-left:auto;">
             <button class="button button-secondary" type="submit">Выйти</button>
