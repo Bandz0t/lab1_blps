@@ -36,6 +36,12 @@ public class User {
     @Column(name = "payment_account", length = 255)
     private String paymentAccount;
 
+    @Column(name = "password_hash", nullable = false, length = 255)
+    private String passwordHash;
+
+    @Column(name = "role", nullable = false, length = 30)
+    private String role;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
