@@ -19,7 +19,7 @@
             </div>
             <div class="hero-actions">
                 <a class="button" th:href="@{/videos/create}">Загрузить видео</a>
-                <a class="button button-secondary" th:href="@{/admin}">Системные действия</a>
+                <a class="button button-secondary" th:if="${user != null and user.role == 'ADMIN'}" th:href="@{/admin}">Системные действия</a>
             </div>
         </section>
 
