@@ -20,6 +20,7 @@ import com.example.youtubemonetization.service.RevenueService;
 import com.example.youtubemonetization.service.StatsService;
 import com.example.youtubemonetization.service.UserDataService;
 import com.example.youtubemonetization.service.VideoService;
+import jakarta.validation.Valid;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
@@ -27,6 +28,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -88,9 +91,13 @@ public class UiController {
     }
 
     @PostMapping("/videos/create")
-    public String createVideo(Authentication authentication, VideoCreateRequest request, RedirectAttributes redirectAttributes) {
+    public String createVideo(Authentication authentication, @Valid VideoCreateRequest request, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
         User user = currentUser(authentication);
         request.setAuthorId(user.getId());
+        if (bindingResult.hasErrors()) {
+            redirectAttributes.addFlashAttribute("errorMessage", resolveCreateVideoError(bindingResult));
+            return "redirect:/videos/create";
+        }
         try {
             Video video = videoService.createVideo(request);
             redirectAttributes.addFlashAttribute("successMessage", "Видео успешно создано. Запущен цикл публикации.");
@@ -99,6 +106,18 @@ public class UiController {
             redirectAttributes.addFlashAttribute("errorMessage", ex.getMessage());
             return "redirect:/videos/create";
         }
+    }
+
+    private String resolveCreateVideoError(BindingResult bindingResult) {
+        FieldError sizeBytesError = bindingResult.getFieldError("sizeBytes");
+        if (sizeBytesError != null && "typeMismatch".equals(sizeBytesError.getCode())) {
+            return "Размер видео слишком большой. Укажите значение не больше 2 ГБ.";
+        }
+        return bindingResult.getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .filter(message -> message != null && !message.isBlank())
+                .findFirst()
+                .orElse("Некорректные данные формы.");
     }
 
     @GetMapping("/videos/{id}")
