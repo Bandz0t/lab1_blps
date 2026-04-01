@@ -6,4 +6,6 @@ import com.example.youtubemonetization.entity.Video;
 public interface CopyrightService {
 
     Video processCopyrightCheck(Long videoId, CopyrightCheckRequest request);
+
+    Video processAutomaticCopyrightCheck(Long videoId);
 }
