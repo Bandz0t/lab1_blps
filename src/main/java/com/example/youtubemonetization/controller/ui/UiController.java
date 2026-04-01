@@ -19,6 +19,7 @@ import com.example.youtubemonetization.service.ProcessService;
 import com.example.youtubemonetization.service.RevenueService;
 import com.example.youtubemonetization.service.StatsService;
 import com.example.youtubemonetization.service.UserDataService;
+import com.example.youtubemonetization.service.VideoMetadataService;
 import com.example.youtubemonetization.service.VideoService;
 import com.example.youtubemonetization.service.storage.VideoStorageService;
 import java.time.YearMonth;
@@ -51,6 +52,7 @@ public class UiController {
     private final CopyrightService copyrightService;
     private final MonetizationService monetizationService;
     private final VideoStorageService videoStorageService;
+    private final VideoMetadataService videoMetadataService;
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
@@ -83,7 +85,6 @@ public class UiController {
         form.setAuthorId(user.getId());
         form.setFormat("mp4");
         form.setSizeBytes(52428800L);
-        form.setDurationSeconds(120);
         model.addAttribute("currentPage", "videos");
         model.addAttribute("user", user);
         model.addAttribute("videoForm", form);
@@ -119,6 +120,7 @@ public class UiController {
         request.setFilePath(objectKey);
         request.setSizeBytes(videoFile.getSize());
         request.setFormat(resolveFormat(videoFile));
+        request.setDurationSeconds(videoMetadataService.extractDurationSeconds(videoFile));
     }
 
     private String resolveFormat(MultipartFile videoFile) {
