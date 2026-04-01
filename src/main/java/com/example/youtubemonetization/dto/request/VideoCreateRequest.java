@@ -22,13 +22,10 @@ public class VideoCreateRequest {
 
     private String description;
 
-    @NotBlank(message = "File path is required")
     private String filePath;
 
-    @NotBlank(message = "Format is required")
     private String format;
 
-    @NotNull
     @Positive(message = "Size must be positive")
     @Max(value = MAX_UPLOAD_SIZE_BYTES, message = "Размер видео не должен превышать 2 ГБ")
     private Long sizeBytes;

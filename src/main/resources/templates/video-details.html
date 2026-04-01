@@ -64,6 +64,15 @@
                 <div th:class="${@ui.processStepClass(video, 'REVENUE')}">Доходы</div>
             </div>
         </section>
+        <section class="panel">
+            <div class="panel-header">
+                <h3>Просмотр загруженного видео 🎬</h3>
+            </div>
+            <video controls style="width: 100%; max-height: 540px; border-radius: 12px;"
+                   th:src="@{/videos/{id}/stream(id=${video.id})}">
+                Ваш браузер не поддерживает воспроизведение видео.
+            </video>
+        </section>
 
         <section class="grid-2">
             <article class="panel">

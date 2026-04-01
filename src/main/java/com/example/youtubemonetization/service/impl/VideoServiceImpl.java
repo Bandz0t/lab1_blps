@@ -34,6 +34,15 @@ public class VideoServiceImpl implements VideoService {
 
     @Override
     public Video createVideo(VideoCreateRequest request) {
+        if (request.getFilePath() == null || request.getFilePath().isBlank()) {
+            throw new BusinessException("Путь к файлу обязателен");
+        }
+        if (request.getFormat() == null || request.getFormat().isBlank()) {
+            throw new BusinessException("Формат обязателен");
+        }
+        if (request.getSizeBytes() == null || request.getSizeBytes() <= 0) {
+            throw new BusinessException("Размер файла должен быть положительным");
+        }
         User author = userDataService.getById(request.getAuthorId());
         Video video = new Video();
         video.setAuthor(author);
