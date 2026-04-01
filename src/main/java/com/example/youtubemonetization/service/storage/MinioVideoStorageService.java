@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
-@ConditionalOnBean(MinioClient.class)
+@ConditionalOnBean(type = "io.minio.MinioClient")
 public class MinioVideoStorageService implements VideoStorageService {
 
     private final MinioClient minioClient;
