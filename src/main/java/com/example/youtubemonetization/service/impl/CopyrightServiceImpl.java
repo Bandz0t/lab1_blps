@@ -13,24 +13,22 @@ import com.example.youtubemonetization.exception.RequestValidationException;
 import com.example.youtubemonetization.service.ClaimDataService;
 import com.example.youtubemonetization.service.CopyrightService;
 import com.example.youtubemonetization.service.VideoDataService;
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.parser.AutoDetectParser;
-import org.apache.tika.parser.ParseContext;
-import org.apache.tika.sax.BodyContentHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.xml.sax.SAXException;
+import org.vosk.Model;
+import org.vosk.Recognizer;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +36,19 @@ import org.xml.sax.SAXException;
 @Slf4j
 public class CopyrightServiceImpl implements CopyrightService {
 
-    private static final int MAX_SUBTITLE_SIZE = 200_000;
+    private static final int AUDIO_SAMPLE_RATE = 16_000;
+    private static final int AUDIO_BUFFER_SIZE = 4_096;
+    private static final Pattern VOSK_TEXT_PATTERN = Pattern.compile("\"text\"\\s*:\\s*\"([^\"]*)\"");
 
     private final VideoDataService videoDataService;
     private final ClaimDataService claimDataService;
 
     @Value("${copyright.banned-words:pirated,camrip,torrent,leak}")
     private List<String> bannedWords;
+    @Value("${copyright.vosk-model-path:}")
+    private String voskModelPath;
+    @Value("${copyright.ffmpeg-binary:ffmpeg}")
+    private String ffmpegBinary;
 
     @Override
     public Video processCopyrightCheck(Long videoId, CopyrightCheckRequest request) {
@@ -133,16 +137,79 @@ public class CopyrightServiceImpl implements CopyrightService {
     }
 
     private String extractSubtitles(String filePath) {
-        try (InputStream inputStream = new FileInputStream(filePath)) {
-            BodyContentHandler handler = new BodyContentHandler(MAX_SUBTITLE_SIZE);
-            Metadata metadata = new Metadata();
-            ParseContext context = new ParseContext();
-            AutoDetectParser parser = new AutoDetectParser();
-            parser.parse(inputStream, handler, metadata, context);
-            return handler.toString();
-        } catch (IOException | TikaException | SAXException e) {
-            log.warn("Не удалось извлечь текст из видео {}: {}", filePath, e.getMessage());
+        if (voskModelPath == null || voskModelPath.isBlank()) {
+            log.warn("Пропущено авто-распознавание: не задан путь к Vosk модели (copyright.vosk-model-path)");
             return "";
         }
+        File modelDir = new File(voskModelPath);
+        if (!modelDir.exists() || !modelDir.isDirectory()) {
+            log.warn("Пропущено авто-распознавание: директория Vosk модели не найдена: {}", voskModelPath);
+            return "";
+        }
+
+        Process process = null;
+        try (Model model = new Model(voskModelPath);
+             Recognizer recognizer = new Recognizer(model, AUDIO_SAMPLE_RATE)) {
+            process = startAudioExtractionProcess(filePath);
+            StringBuilder subtitles = new StringBuilder();
+            byte[] buffer = new byte[AUDIO_BUFFER_SIZE];
+
+            try (InputStream audioStream = process.getInputStream()) {
+                int bytesRead;
+                while ((bytesRead = audioStream.read(buffer)) != -1) {
+                    if (recognizer.acceptWaveForm(buffer, bytesRead)) {
+                        subtitles.append(extractText(recognizer.getResult())).append(' ');
+                    }
+                }
+            }
+
+            subtitles.append(extractText(recognizer.getFinalResult()));
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                log.warn("FFmpeg завершился с кодом {} при обработке файла {}", exitCode, filePath);
+            }
+            return subtitles.toString().trim();
+        } catch (IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            log.warn("Не удалось извлечь субтитры через Vosk из видео {}: {}", filePath, e.getMessage());
+            return "";
+        } finally {
+            if (process != null && process.isAlive()) {
+                process.destroyForcibly();
+            }
+        }
+    }
+
+    private Process startAudioExtractionProcess(String filePath) throws IOException {
+        return new ProcessBuilder(
+                ffmpegBinary,
+                "-i",
+                filePath,
+                "-vn",
+                "-ar",
+                String.valueOf(AUDIO_SAMPLE_RATE),
+                "-ac",
+                "1",
+                "-f",
+                "s16le",
+                "-")
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .start();
+    }
+
+    private String extractText(String voskJson) {
+        if (voskJson == null || voskJson.isBlank()) {
+            return "";
+        }
+        Matcher matcher = VOSK_TEXT_PATTERN.matcher(voskJson);
+        if (!matcher.find()) {
+            return "";
+        }
+        return matcher.group(1)
+                .replace("\\n", " ")
+                .replace("\\\"", "\"")
+                .trim();
     }
 }
