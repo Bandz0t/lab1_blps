@@ -24,10 +24,14 @@
                 <div class="muted">Fragment: <span th:text="${claim.detectedFragment ?: '—'}"></span></div>
             </div>
 
-            <form method="post" th:action="@{/videos/{id}/edit(id=${video.id})}" th:object="${editForm}" class="form-grid">
+            <form method="post" th:action="@{/videos/{id}/edit(id=${video.id})}" th:object="${editForm}" enctype="multipart/form-data" class="form-grid">
                 <label class="full-width">
                     Новый путь к файлу
                     <input type="text" th:field="*{newFilePath}" required>
+                </label>
+                <label class="full-width">
+                    Или загрузите обновленный файл
+                    <input type="file" name="videoFile" accept="video/*">
                 </label>
                 <label class="full-width">
                     Комментарий

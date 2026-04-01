@@ -14,32 +14,19 @@
             <div class="eyebrow">Экран 2</div>
             <h2>Загрузка нового видео ⬆️</h2>
             <p>Форма создает сущность <code>Video</code> и автоматически запускает производственный цикл публикации.</p>
-            <form method="post" th:action="@{/videos/create}" th:object="${videoForm}" class="form-grid">
+            <form method="post" th:action="@{/videos/create}" th:object="${videoForm}" enctype="multipart/form-data" class="form-grid">
                 <input type="hidden" th:field="*{authorId}">
                 <label>
                     Название
                     <input type="text" th:field="*{title}" required>
                 </label>
-                <label>
-                    Формат
-                    <select th:field="*{format}">
-                        <option value="mp4">mp4</option>
-                        <option value="mov">mov</option>
-                        <option value="avi">avi</option>
-                        <option value="mkv">mkv (спровоцирует fail validation)</option>
-                    </select>
-                </label>
                 <label class="full-width">
                     Описание
                     <textarea th:field="*{description}" rows="4"></textarea>
                 </label>
-                <label>
-                    File path / mock file name
-                    <input type="text" th:field="*{filePath}" required>
-                </label>
-                <label>
-                    Размер файла (bytes)
-                    <input type="number" th:field="*{sizeBytes}" min="1" max="2147483648" required>
+                <label class="full-width">
+                    Видео файл
+                    <input type="file" name="videoFile" accept="video/*" required>
                 </label>
                 <label>
                     Длительность (сек.)

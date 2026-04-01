@@ -20,7 +20,7 @@ import com.example.youtubemonetization.service.RevenueService;
 import com.example.youtubemonetization.service.StatsService;
 import com.example.youtubemonetization.service.UserDataService;
 import com.example.youtubemonetization.service.VideoService;
-import jakarta.validation.Valid;
+import com.example.youtubemonetization.service.storage.VideoStorageService;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
@@ -28,13 +28,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -51,6 +50,7 @@ public class UiController {
     private final ClaimDataService claimDataService;
     private final CopyrightService copyrightService;
     private final MonetizationService monetizationService;
+    private final VideoStorageService videoStorageService;
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
@@ -91,14 +91,20 @@ public class UiController {
     }
 
     @PostMapping("/videos/create")
-    public String createVideo(Authentication authentication, @Valid VideoCreateRequest request, BindingResult bindingResult, RedirectAttributes redirectAttributes) {
+    public String createVideo(
+            Authentication authentication,
+            VideoCreateRequest request,
+            @RequestParam("videoFile") MultipartFile videoFile,
+            RedirectAttributes redirectAttributes
+    ) {
         User user = currentUser(authentication);
         request.setAuthorId(user.getId());
-        if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage", resolveCreateVideoError(bindingResult));
+        if (videoFile == null || videoFile.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Выберите видеофайл для загрузки.");
             return "redirect:/videos/create";
         }
         try {
+            populateVideoRequestFromFile(request, videoFile);
             Video video = videoService.createVideo(request);
             redirectAttributes.addFlashAttribute("successMessage", "Видео успешно создано. Запущен цикл публикации.");
             return "redirect:/videos/" + video.getId();
@@ -108,16 +114,19 @@ public class UiController {
         }
     }
 
-    private String resolveCreateVideoError(BindingResult bindingResult) {
-        FieldError sizeBytesError = bindingResult.getFieldError("sizeBytes");
-        if (sizeBytesError != null && "typeMismatch".equals(sizeBytesError.getCode())) {
-            return "Размер видео слишком большой. Укажите значение не больше 2 ГБ.";
+    private void populateVideoRequestFromFile(VideoCreateRequest request, MultipartFile videoFile) {
+        String objectKey = videoStorageService.upload(videoFile);
+        request.setFilePath(objectKey);
+        request.setSizeBytes(videoFile.getSize());
+        request.setFormat(resolveFormat(videoFile));
+    }
+
+    private String resolveFormat(MultipartFile videoFile) {
+        String originalName = videoFile.getOriginalFilename();
+        if (originalName == null || !originalName.contains(".")) {
+            return "mp4";
         }
-        return bindingResult.getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage)
-                .filter(message -> message != null && !message.isBlank())
-                .findFirst()
-                .orElse("Некорректные данные формы.");
+        return originalName.substring(originalName.lastIndexOf('.') + 1).toLowerCase();
     }
 
     @GetMapping("/videos/{id}")
@@ -171,8 +180,16 @@ public class UiController {
     }
 
     @PostMapping("/videos/{id}/edit")
-    public String editVideo(@PathVariable Long id, EditVideoRequest request, RedirectAttributes redirectAttributes) {
+    public String editVideo(
+            @PathVariable Long id,
+            EditVideoRequest request,
+            @RequestParam("videoFile") MultipartFile videoFile,
+            RedirectAttributes redirectAttributes
+    ) {
         try {
+            if (videoFile != null && !videoFile.isEmpty()) {
+                request.setNewFilePath(videoStorageService.upload(videoFile));
+            }
             videoService.editVideo(id, request);
             redirectAttributes.addFlashAttribute("successMessage", "Видео обновлено. Можно повторно запустить проверку прав.");
             return "redirect:/videos/" + id;

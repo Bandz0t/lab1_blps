@@ -48,6 +48,7 @@
                     <td>
                         <div class="actions-column">
                             <a th:href="@{/videos/{id}(id=${video.id})}">Открыть</a>
+                            <a th:href="@{/videos/{id}/stream(id=${video.id})}" target="_blank">Смотреть</a>
                             <a th:href="@{/videos/{id}/edit(id=${video.id})}">Редактировать</a>
                             <a th:href="@{/videos/{id}/monetization(id=${video.id})}">Монетизация</a>
                             <a th:href="@{/processes/{videoId}(videoId=${video.id})}">Детали</a>
