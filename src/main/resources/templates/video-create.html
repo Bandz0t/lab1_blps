@@ -28,10 +28,7 @@
                     Видео файл
                     <input type="file" name="videoFile" accept="video/*" required>
                 </label>
-                <label>
-                    Длительность (сек.)
-                    <input type="number" th:field="*{durationSeconds}" min="1" required>
-                </label>
+                <p class="full-width">Длительность определяется автоматически из метаданных загруженного файла. ⏱️</p>
                 <div class="form-actions full-width">
                     <a class="button button-secondary" th:href="@{/videos}">Назад</a>
                     <button class="button" type="submit">Загрузить</button>
