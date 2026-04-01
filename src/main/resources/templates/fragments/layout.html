@@ -26,8 +26,20 @@
 </header>
 
 <div th:fragment="alerts">
-    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
-    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+    <div class="alert alert-success" th:if="${successMessage}">
+        <span class="alert-icon">✅</span>
+        <div class="alert-body">
+            <span class="alert-title">Успешно</span>
+            <span th:text="${successMessage}"></span>
+        </div>
+    </div>
+    <div class="alert alert-danger" th:if="${errorMessage}">
+        <span class="alert-icon">⚠️</span>
+        <div class="alert-body">
+            <span class="alert-title">Ошибка</span>
+            <span th:text="${errorMessage}"></span>
+        </div>
+    </div>
 </div>
 </body>
 </html>
