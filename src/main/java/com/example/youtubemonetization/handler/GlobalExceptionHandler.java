@@ -47,7 +47,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request.getRequestURI());
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Произошла непредвиденная ошибка. Попробуйте повторить запрос позже.",
+                request.getRequestURI()
+        );
     }
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message, String path) {

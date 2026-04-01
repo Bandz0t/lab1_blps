@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ошибка</title>
+    <link rel="stylesheet" th:href="@{/app.css}">
+</head>
+<body>
+<div class="page">
+    <main class="content narrow">
+        <section class="panel error-panel">
+            <div class="error-emoji">⚠️</div>
+            <h1>Что-то пошло не так</h1>
+            <p class="muted" th:text="${message}">Произошла ошибка.</p>
+
+            <div class="error-meta">
+                <div><strong>Статус:</strong> <span th:text="${status + ' ' + error}">500 Internal Server Error</span></div>
+                <div><strong>Путь:</strong> <span th:text="${path}">/dashboard</span></div>
+                <div><strong>Время:</strong> <span th:text="${timestamp}">01.04.2026 12:00:00</span></div>
+            </div>
+
+            <div class="hero-actions top-gap">
+                <a class="button" th:href="@{/dashboard}">На главную</a>
+                <a class="button button-secondary" href="javascript:history.back()">Назад</a>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
