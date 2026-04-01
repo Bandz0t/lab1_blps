@@ -13,6 +13,7 @@ import com.example.youtubemonetization.enums.ValidationStatus;
 import com.example.youtubemonetization.exception.IllegalProcessStateException;
 import com.example.youtubemonetization.mapper.PayoutMapper;
 import com.example.youtubemonetization.mapper.RevenueMapper;
+import com.example.youtubemonetization.service.CopyrightService;
 import com.example.youtubemonetization.service.ProcessService;
 import com.example.youtubemonetization.service.RevenueService;
 import com.example.youtubemonetization.service.ValidationService;
@@ -34,6 +35,7 @@ public class ProcessServiceImpl implements ProcessService {
 
     private final VideoDataService videoDataService;
     private final ValidationService validationService;
+    private final CopyrightService copyrightService;
     private final RevenueService revenueService;
     private final PayoutApplicationService payoutApplicationService;
     private final RevenueMapper revenueMapper;
@@ -47,6 +49,10 @@ public class ProcessServiceImpl implements ProcessService {
             videoDataService.save(video);
         }
         validationService.validateVideo(videoId);
+        Video validatedVideo = videoDataService.getById(videoId);
+        if (validatedVideo.getValidationStatus() == ValidationStatus.PASSED) {
+            copyrightService.processAutomaticCopyrightCheck(videoId);
+        }
     }
 
     @Override
@@ -68,6 +74,10 @@ public class ProcessServiceImpl implements ProcessService {
         Video video = videoDataService.getById(videoId);
         if (video.getValidationStatus() == ValidationStatus.PENDING) {
             validationService.validateVideo(videoId);
+            Video validatedVideo = videoDataService.getById(videoId);
+            if (validatedVideo.getValidationStatus() == ValidationStatus.PASSED) {
+                copyrightService.processAutomaticCopyrightCheck(videoId);
+            }
             return getProcessState(videoId);
         }
         throw new IllegalProcessStateException("Процесс видео id=" + videoId + " не требует технического продолжения");

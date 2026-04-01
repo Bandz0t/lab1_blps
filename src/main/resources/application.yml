@@ -38,3 +38,11 @@ server:
 logging:
   level:
     org.flywaydb: info
+
+
+copyright:
+  banned-words:
+    - pirated
+    - camrip
+    - torrent
+    - leak
