@@ -43,7 +43,7 @@ public class CopyrightServiceImpl implements CopyrightService {
     private final VideoDataService videoDataService;
     private final ClaimDataService claimDataService;
 
-    @Value("${copyright.banned-words:pirated,camrip,torrent,leak}")
+    @Value("${copyright.banned-words:good,morning,sure,everybody}")
     private List<String> bannedWords;
     @Value("${copyright.vosk-model-path:}")
     private String voskModelPath;

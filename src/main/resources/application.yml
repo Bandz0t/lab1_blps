@@ -41,8 +41,6 @@ logging:
 
 
 copyright:
-  banned-words:
-    - pirated
-    - camrip
-    - torrent
-    - leak
+  vosk-model-path: models/vosk-model-small-en-us-0.15
+  banned-words: good,morning,sure,everybody
+  ffmpeg-binary: ffmpeg
