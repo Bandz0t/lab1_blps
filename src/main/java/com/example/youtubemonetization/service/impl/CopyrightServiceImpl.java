@@ -2,16 +2,19 @@ package com.example.youtubemonetization.service.impl;
 
 import com.example.youtubemonetization.dto.request.CopyrightCheckRequest;
 import com.example.youtubemonetization.entity.Claim;
+import com.example.youtubemonetization.entity.ModerationRequest;
 import com.example.youtubemonetization.entity.Video;
 import com.example.youtubemonetization.enums.ClaimStatus;
 import com.example.youtubemonetization.enums.ClaimType;
 import com.example.youtubemonetization.enums.CopyrightStatus;
+import com.example.youtubemonetization.enums.ModerationRequestStatus;
 import com.example.youtubemonetization.enums.MonetizationStatus;
 import com.example.youtubemonetization.enums.MonetizationType;
 import com.example.youtubemonetization.enums.UploadStatus;
 import com.example.youtubemonetization.enums.ValidationStatus;
 import com.example.youtubemonetization.exception.BusinessException;
 import com.example.youtubemonetization.exception.RequestValidationException;
+import com.example.youtubemonetization.repository.ModerationRequestRepository;
 import com.example.youtubemonetization.service.ClaimDataService;
 import com.example.youtubemonetization.service.CopyrightService;
 import com.example.youtubemonetization.service.VideoDataService;
@@ -50,6 +53,7 @@ public class CopyrightServiceImpl implements CopyrightService {
 
     private final VideoDataService videoDataService;
     private final ClaimDataService claimDataService;
+    private final ModerationRequestRepository moderationRequestRepository;
     private final VideoStorageService videoStorageService;
 
     @Value("${copyright.banned-words:good,morning,sure,everybody}")
@@ -71,11 +75,13 @@ public class CopyrightServiceImpl implements CopyrightService {
             createClaim(video, request.getClaimType(), request.getDescription(), request.getDetectedFragment());
             video.setCopyrightStatus(CopyrightStatus.NEEDS_EDITING);
             video.setUploadStatus(UploadStatus.READY_FOR_REVIEW);
+            ensureActiveModerationRequest(video);
             return videoDataService.save(video);
         }
 
         closeOpenClaims(videoId);
         video.setCopyrightStatus(CopyrightStatus.CLEARED);
+        ensureActiveModerationRequest(video);
         return videoDataService.save(video);
     }
 
@@ -101,6 +107,7 @@ public class CopyrightServiceImpl implements CopyrightService {
                     videoId);
             video.setUploadStatus(UploadStatus.READY_FOR_REVIEW);
             video.setCopyrightStatus(CopyrightStatus.PENDING);
+            ensureActiveModerationRequest(video);
             return videoDataService.save(video);
         }
 
@@ -113,6 +120,7 @@ public class CopyrightServiceImpl implements CopyrightService {
                     violationWord);
             video.setCopyrightStatus(CopyrightStatus.NEEDS_EDITING);
             video.setUploadStatus(UploadStatus.READY_FOR_REVIEW);
+            ensureActiveModerationRequest(video);
             return videoDataService.save(video);
         }
 
@@ -122,6 +130,7 @@ public class CopyrightServiceImpl implements CopyrightService {
         video.setMonetizationType(MonetizationType.NONE);
         video.setUploadStatus(UploadStatus.READY_FOR_REVIEW);
         video.setPublishedAt(null);
+        ensureActiveModerationRequest(video);
         log.info("Автоматическая проверка авторских прав успешно завершена для видео {}: нарушений не найдено", videoId);
         return videoDataService.save(video);
     }
@@ -147,6 +156,22 @@ public class CopyrightServiceImpl implements CopyrightService {
         claims.stream()
                 .filter(claim -> claim.getStatus() == ClaimStatus.OPEN)
                 .forEach(claim -> claimDataService.resolveClaim(claim.getId()));
+    }
+
+
+    private void ensureActiveModerationRequest(Video video) {
+        boolean hasActive = moderationRequestRepository
+                .findFirstByVideoIdAndActiveTrueOrderByCreatedAtDesc(video.getId())
+                .isPresent();
+        if (hasActive) {
+            return;
+        }
+
+        ModerationRequest moderationRequest = new ModerationRequest();
+        moderationRequest.setVideo(video);
+        moderationRequest.setStatus(ModerationRequestStatus.PENDING);
+        moderationRequest.setActive(true);
+        moderationRequestRepository.save(moderationRequest);
     }
 
     private String findViolationWord(String subtitles) {

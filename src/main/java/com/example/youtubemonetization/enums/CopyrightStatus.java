@@ -4,5 +4,6 @@ public enum CopyrightStatus {
     PENDING,
     CLEARED,
     VIOLATION_FOUND,
-    NEEDS_EDITING
+    NEEDS_EDITING,
+    MANUAL_REVIEW
 }

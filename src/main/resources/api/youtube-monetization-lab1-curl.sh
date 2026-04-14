@@ -33,3 +33,21 @@ curl -sS "$BASE_URL/api/users/${AUTHOR_ID}/revenues" | jq .
 
 printf '\n[7] Выплаты пользователя\n'
 curl -sS "$BASE_URL/api/users/${AUTHOR_ID}/payouts" | jq .
+
+printf '\n[8] Решение модератора APPROVE\n'
+curl -sS -X POST "$BASE_URL/api/moderation/videos/${VIDEO_ID}/decision" \
+  -u moderator:moderator12345 \
+  -H 'Content-Type: application/json' \
+  -d '{"decision":"APPROVE","reason":"All checks passed"}' | jq .
+
+printf '\n[9] Решение модератора REJECT\n'
+curl -sS -X POST "$BASE_URL/api/moderation/videos/${VIDEO_ID}/decision" \
+  -u moderator:moderator12345 \
+  -H 'Content-Type: application/json' \
+  -d '{"decision":"REJECT","reason":"Policy violation"}' | jq .
+
+printf '\n[10] Решение модератора MANUAL_REVIEW\n'
+curl -sS -X POST "$BASE_URL/api/moderation/videos/${VIDEO_ID}/decision" \
+  -u moderator:moderator12345 \
+  -H 'Content-Type: application/json' \
+  -d '{"decision":"MANUAL_REVIEW","reason":"Need additional human review"}' | jq .
