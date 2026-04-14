@@ -3,7 +3,11 @@ package com.example.youtubemonetization.controller;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
+import com.example.youtubemonetization.dto.response.ModerationDecisionResponse;
 import com.example.youtubemonetization.service.ModerationService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +26,18 @@ class ModerationControllerSecurityTest {
 
     @MockBean
     private ModerationService moderationService;
+
+    @Test
+    @WithMockUser(roles = "MODERATOR")
+    void shouldAllowModeratorWithoutCsrfForApiEndpoint() throws Exception {
+        when(moderationService.processModerationDecision(eq(1L), any()))
+                .thenReturn(new ModerationDecisionResponse(1L, "APPROVE", "ok", "APPROVED"));
+
+        mockMvc.perform(post("/api/moderation/videos/1/decision")
+                        .contentType("application/json")
+                        .content("{\"decision\":\"APPROVE\",\"reason\":\"ok\"}"))
+                .andExpect(status().isOk());
+    }
 
     @Test
     @WithMockUser(roles = "AUTHOR")
