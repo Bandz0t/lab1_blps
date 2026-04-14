@@ -19,10 +19,14 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+
   servlet:
     multipart:
       max-file-size: 2GB
       max-request-size: 2GB
+
+  jta:
+    enabled: true
 
 storage:
   minio-enabled: true
@@ -39,8 +43,13 @@ logging:
   level:
     org.flywaydb: info
 
-
 copyright:
   vosk-model-path: models/vosk-model-small-en-us-0.15
   banned-words: good,morning,sure,everybody
   ffmpeg-binary: ffmpeg
+
+security:
+  jwt:
+    # base64 for 32-byte key: "this-is-very-secret-key-for-jwt!!"
+    secret: dGhpcy1pcy12ZXJ5LXNlY3JldC1rZXktZm9yLWp3dCEh
+    ttl-minutes: 60

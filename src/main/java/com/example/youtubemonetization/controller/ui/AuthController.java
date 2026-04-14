@@ -2,6 +2,7 @@ package com.example.youtubemonetization.controller.ui;
 
 import com.example.youtubemonetization.dto.request.auth.RegisterRequest;
 import com.example.youtubemonetization.entity.User;
+import com.example.youtubemonetization.security.AppRole;
 import com.example.youtubemonetization.service.UserDataService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +53,7 @@ public class AuthController {
         user.setEmail(request.getEmail());
         user.setFullName(request.getFullName());
         user.setChannelName(request.getChannelName());
-        user.setRole("AUTHOR");
+        user.setRole(AppRole.AUTHOR.name());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         userDataService.create(user);
 
