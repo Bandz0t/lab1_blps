@@ -9,5 +9,13 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+  jta:
+    enabled: false
+
 storage:
   minio-enabled: false
+
+security:
+  jwt:
+    secret: dGhpcy1pcy12ZXJ5LXNlY3JldC1rZXktZm9yLWp3dCEh
+    ttl-minutes: 60

@@ -15,6 +15,7 @@ public class AppInfoController {
         response.put("status", "UP");
         response.put("message", "Service is running. Use REST API endpoints under /api or open /login for the web UI.");
         response.put("docs", new String[] {
+                "POST /api/auth/token",
                 "POST /api/videos",
                 "GET /api/videos/{id}",
                 "GET /api/videos/{id}/status",
