@@ -16,6 +16,7 @@ import com.example.youtubemonetization.service.VideoDataService;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -74,6 +75,11 @@ public class CopyrightServiceImpl implements CopyrightService {
     public Video processAutomaticCopyrightCheck(Long videoId) {
         Video video = videoDataService.getById(videoId);
         assertReadyForCheck(video);
+        log.info(
+                "Запуск автоматической проверки авторских прав для видео {} (filePath={}, status={})",
+                videoId,
+                video.getFilePath(),
+                video.getUploadStatus());
 
         String subtitles = extractSubtitles(video.getFilePath());
         log.info(
@@ -106,6 +112,7 @@ public class CopyrightServiceImpl implements CopyrightService {
         video.setCopyrightStatus(CopyrightStatus.CLEARED);
         video.setUploadStatus(UploadStatus.PUBLISHED);
         video.setPublishedAt(LocalDateTime.now());
+        log.info("Автоматическая проверка авторских прав успешно завершена для видео {}: нарушений не найдено", videoId);
         return videoDataService.save(video);
     }
 
@@ -162,6 +169,7 @@ public class CopyrightServiceImpl implements CopyrightService {
         }
 
         Process process = null;
+        long startedAt = System.currentTimeMillis();
         try (Model model = new Model(voskModelPath);
              Recognizer recognizer = new Recognizer(model, AUDIO_SAMPLE_RATE)) {
             process = startAudioExtractionProcess(filePath);
@@ -180,8 +188,18 @@ public class CopyrightServiceImpl implements CopyrightService {
             subtitles.append(extractText(recognizer.getFinalResult()));
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                log.warn("FFmpeg завершился с кодом {} при обработке файла {}", exitCode, filePath);
+                String ffmpegErrorOutput = readProcessErrorOutput(process);
+                log.warn(
+                        "FFmpeg завершился с кодом {} при обработке файла {}. stderr: {}",
+                        exitCode,
+                        filePath,
+                        ffmpegErrorOutput.isBlank() ? "<пусто>" : ffmpegErrorOutput);
             }
+            log.info(
+                    "Извлечение субтитров завершено для файла {} за {} мс (длина текста: {} символов)",
+                    filePath,
+                    System.currentTimeMillis() - startedAt,
+                    subtitles.length());
             return subtitles.toString().trim();
         } catch (IOException | InterruptedException e) {
             if (e instanceof InterruptedException) {
@@ -197,6 +215,7 @@ public class CopyrightServiceImpl implements CopyrightService {
     }
 
     private Process startAudioExtractionProcess(String filePath) throws IOException {
+        log.debug("Запуск FFmpeg для извлечения аудио из файла {}", filePath);
         return new ProcessBuilder(
                 ffmpegBinary,
                 "-i",
@@ -209,8 +228,17 @@ public class CopyrightServiceImpl implements CopyrightService {
                 "-f",
                 "s16le",
                 "-")
-                .redirectError(ProcessBuilder.Redirect.DISCARD)
                 .start();
+    }
+
+    private String readProcessErrorOutput(Process process) {
+        try (InputStream errorStream = process.getErrorStream()) {
+            byte[] stderrBytes = errorStream.readAllBytes();
+            return new String(stderrBytes, StandardCharsets.UTF_8).trim();
+        } catch (IOException e) {
+            log.debug("Не удалось прочитать stderr FFmpeg: {}", e.getMessage());
+            return "";
+        }
     }
 
     private String extractText(String voskJson) {
