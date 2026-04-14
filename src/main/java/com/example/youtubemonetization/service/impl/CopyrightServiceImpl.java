@@ -76,6 +76,20 @@ public class CopyrightServiceImpl implements CopyrightService {
         assertReadyForCheck(video);
 
         String subtitles = extractSubtitles(video.getFilePath());
+        log.info(
+                "Автоматическая проверка авторских прав: распознанные субтитры для видео {}: {}",
+                videoId,
+                subtitles.isBlank() ? "<пусто>" : subtitles);
+
+        if (subtitles.isBlank()) {
+            log.warn(
+                    "Автоматическая проверка авторских прав: субтитры для видео {} не распознаны, видео отправлено на ручную модерацию",
+                    videoId);
+            video.setUploadStatus(UploadStatus.READY_FOR_REVIEW);
+            video.setCopyrightStatus(CopyrightStatus.PENDING);
+            return videoDataService.save(video);
+        }
+
         String violationWord = findViolationWord(subtitles);
         if (violationWord != null) {
             createClaim(
