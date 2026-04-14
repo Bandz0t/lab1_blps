@@ -6,6 +6,8 @@ import com.example.youtubemonetization.entity.Video;
 import com.example.youtubemonetization.enums.ClaimStatus;
 import com.example.youtubemonetization.enums.ClaimType;
 import com.example.youtubemonetization.enums.CopyrightStatus;
+import com.example.youtubemonetization.enums.MonetizationStatus;
+import com.example.youtubemonetization.enums.MonetizationType;
 import com.example.youtubemonetization.enums.UploadStatus;
 import com.example.youtubemonetization.enums.ValidationStatus;
 import com.example.youtubemonetization.exception.BusinessException;
@@ -22,7 +24,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -117,8 +118,10 @@ public class CopyrightServiceImpl implements CopyrightService {
 
         closeOpenClaims(videoId);
         video.setCopyrightStatus(CopyrightStatus.CLEARED);
-        video.setUploadStatus(UploadStatus.PUBLISHED);
-        video.setPublishedAt(LocalDateTime.now());
+        video.setMonetizationStatus(MonetizationStatus.PENDING);
+        video.setMonetizationType(MonetizationType.NONE);
+        video.setUploadStatus(UploadStatus.READY_FOR_REVIEW);
+        video.setPublishedAt(null);
         log.info("Автоматическая проверка авторских прав успешно завершена для видео {}: нарушений не найдено", videoId);
         return videoDataService.save(video);
     }
