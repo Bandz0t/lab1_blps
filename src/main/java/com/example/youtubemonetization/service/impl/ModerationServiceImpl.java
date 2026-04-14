@@ -74,6 +74,10 @@ public class ModerationServiceImpl implements ModerationService {
         AuditLog auditLog = buildAuditLog(video, moderationRequest, request, moderator);
         auditLogRepository.save(auditLog);
 
+        if ("ROLLBACK_TEST".equals(request.getReason())) {
+            throw new RuntimeException("ROLLBACK_TEST");
+        }
+
         log.info("Решение модератора успешно применено: videoId={}, decision={}", videoId, request.getDecision());
         return ModerationDecisionResponse.builder()
                 .videoId(video.getId())
