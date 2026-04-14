@@ -13,10 +13,15 @@ import com.example.youtubemonetization.exception.RequestValidationException;
 import com.example.youtubemonetization.service.ClaimDataService;
 import com.example.youtubemonetization.service.CopyrightService;
 import com.example.youtubemonetization.service.VideoDataService;
+import com.example.youtubemonetization.service.storage.StoredVideoObject;
+import com.example.youtubemonetization.service.storage.VideoStorageService;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -40,9 +45,11 @@ public class CopyrightServiceImpl implements CopyrightService {
     private static final int AUDIO_SAMPLE_RATE = 16_000;
     private static final int AUDIO_BUFFER_SIZE = 4_096;
     private static final Pattern VOSK_TEXT_PATTERN = Pattern.compile("\"text\"\\s*:\\s*\"([^\"]*)\"");
+    private static final String TEMP_VIDEO_PREFIX = "copyright-check-";
 
     private final VideoDataService videoDataService;
     private final ClaimDataService claimDataService;
+    private final VideoStorageService videoStorageService;
 
     @Value("${copyright.banned-words:good,morning,sure,everybody}")
     private List<String> bannedWords;
@@ -169,10 +176,15 @@ public class CopyrightServiceImpl implements CopyrightService {
         }
 
         Process process = null;
+        Path preparedVideoPath = null;
         long startedAt = System.currentTimeMillis();
         try (Model model = new Model(voskModelPath);
              Recognizer recognizer = new Recognizer(model, AUDIO_SAMPLE_RATE)) {
-            process = startAudioExtractionProcess(filePath);
+            preparedVideoPath = prepareVideoPath(filePath);
+            if (preparedVideoPath == null) {
+                return "";
+            }
+            process = startAudioExtractionProcess(preparedVideoPath.toString());
             StringBuilder subtitles = new StringBuilder();
             byte[] buffer = new byte[AUDIO_BUFFER_SIZE];
 
@@ -211,6 +223,37 @@ public class CopyrightServiceImpl implements CopyrightService {
             if (process != null && process.isAlive()) {
                 process.destroyForcibly();
             }
+            if (preparedVideoPath != null) {
+                try {
+                    Files.deleteIfExists(preparedVideoPath);
+                } catch (IOException e) {
+                    log.debug("Не удалось удалить временный файл видео {}: {}", preparedVideoPath, e.getMessage());
+                }
+            }
+        }
+    }
+
+    private Path prepareVideoPath(String filePath) throws IOException {
+        Path directPath = Path.of(filePath);
+        if (Files.exists(directPath)) {
+            return directPath.toAbsolutePath();
+        }
+
+        String extension = "";
+        int dotIndex = filePath.lastIndexOf('.');
+        if (dotIndex >= 0 && dotIndex < filePath.length() - 1) {
+            extension = filePath.substring(dotIndex);
+        }
+
+        Path tempVideo = Files.createTempFile(TEMP_VIDEO_PREFIX, extension);
+        StoredVideoObject object = videoStorageService.open(filePath);
+        try (InputStream videoStream = object.stream()) {
+            Files.copy(videoStream, tempVideo, StandardCopyOption.REPLACE_EXISTING);
+            return tempVideo;
+        } catch (RuntimeException | IOException e) {
+            Files.deleteIfExists(tempVideo);
+            log.warn("Не удалось подготовить видео файл '{}' для авто-проверки: {}", filePath, e.getMessage());
+            return null;
         }
     }
 
