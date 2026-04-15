@@ -28,11 +28,10 @@ spring:
   jta:
     enabled: true
 
-  rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 storage:
   minio-enabled: true
@@ -61,10 +60,8 @@ security:
     ttl-minutes: 60
 
 app:
-  rabbitmq:
+  redis:
     enabled: true
   messaging:
     moderation:
-      exchange: youtube.moderation.exchange
-      queue: youtube.moderation.queue
-      routing-key: moderation.decision
+      channel: moderation.decision

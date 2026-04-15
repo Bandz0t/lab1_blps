@@ -9,7 +9,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.messaging.moderation")
 public class ModerationMessagingProperties {
 
-    private String exchange;
-    private String queue;
-    private String routingKey;
+    private String channel;
 }
