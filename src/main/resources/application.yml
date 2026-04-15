@@ -65,3 +65,5 @@ app:
   messaging:
     moderation:
       channel: moderation.decision
+    outbox:
+      poll-delay-ms: 1000

@@ -22,7 +22,7 @@ import com.example.youtubemonetization.repository.NotificationRepository;
 import com.example.youtubemonetization.repository.UserRepository;
 import com.example.youtubemonetization.repository.VideoRepository;
 import com.example.youtubemonetization.service.ModerationService;
-import com.example.youtubemonetization.service.messaging.ModerationEventPublisher;
+import com.example.youtubemonetization.service.messaging.OutboxEventService;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class ModerationServiceImpl implements ModerationService {
     private final NotificationRepository notificationRepository;
     private final AuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
-    private final java.util.Optional<ModerationEventPublisher> moderationEventPublisher;
+    private final java.util.Optional<OutboxEventService> outboxEventService;
 
     @Override
     @Transactional
@@ -81,7 +81,7 @@ public class ModerationServiceImpl implements ModerationService {
             throw new RuntimeException("ROLLBACK_TEST");
         }
 
-        moderationEventPublisher.ifPresent(publisher -> publisher.publishAfterCommit(ModerationDecisionEvent.builder()
+        outboxEventService.ifPresent(service -> service.enqueueModerationDecisionEvent(ModerationDecisionEvent.builder()
                 .videoId(video.getId())
                 .moderationRequestId(moderationRequest.getId())
                 .moderatorId(moderator.getId())
