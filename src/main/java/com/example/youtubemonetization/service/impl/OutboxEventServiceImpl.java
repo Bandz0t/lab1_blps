@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,9 +27,11 @@ public class OutboxEventServiceImpl implements OutboxEventService {
     private final OutboxEventRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
     private final ModerationMessagingProperties messagingProperties;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     public void enqueueModerationDecisionEvent(ModerationDecisionEvent event) {
+        assertRedisAvailable();
         OutboxEvent outboxEvent = new OutboxEvent();
         outboxEvent.setEventType("MODERATION_DECISION");
         outboxEvent.setAggregateType("VIDEO");
@@ -69,6 +73,18 @@ public class OutboxEventServiceImpl implements OutboxEventService {
             return objectMapper.writeValueAsString(event);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Не удалось сериализовать событие модерации для outbox", exception);
+        }
+    }
+
+    private void assertRedisAvailable() {
+        if (stringRedisTemplate.getConnectionFactory() == null) {
+            throw new IllegalStateException("Redis connection factory не настроен");
+        }
+        try (RedisConnection redisConnection = stringRedisTemplate.getConnectionFactory().getConnection()) {
+            String pingResponse = redisConnection.ping();
+            if (!"PONG".equalsIgnoreCase(pingResponse)) {
+                throw new IllegalStateException("Redis недоступен (PING != PONG)");
+            }
         }
     }
 }
