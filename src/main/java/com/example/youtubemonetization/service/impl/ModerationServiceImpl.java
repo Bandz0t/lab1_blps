@@ -2,6 +2,7 @@ package com.example.youtubemonetization.service.impl;
 
 import com.example.youtubemonetization.dto.request.ModerationDecisionRequest;
 import com.example.youtubemonetization.dto.response.ModerationDecisionResponse;
+import com.example.youtubemonetization.dto.event.ModerationDecisionEvent;
 import com.example.youtubemonetization.entity.AuditLog;
 import com.example.youtubemonetization.entity.ModerationRequest;
 import com.example.youtubemonetization.entity.Notification;
@@ -21,6 +22,7 @@ import com.example.youtubemonetization.repository.NotificationRepository;
 import com.example.youtubemonetization.repository.UserRepository;
 import com.example.youtubemonetization.repository.VideoRepository;
 import com.example.youtubemonetization.service.ModerationService;
+import com.example.youtubemonetization.service.messaging.ModerationEventPublisher;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +41,7 @@ public class ModerationServiceImpl implements ModerationService {
     private final NotificationRepository notificationRepository;
     private final AuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
+    private final java.util.Optional<ModerationEventPublisher> moderationEventPublisher;
 
     @Override
     @Transactional
@@ -77,6 +80,16 @@ public class ModerationServiceImpl implements ModerationService {
         if ("ROLLBACK_TEST".equals(request.getReason())) {
             throw new RuntimeException("ROLLBACK_TEST");
         }
+
+        moderationEventPublisher.ifPresent(publisher -> publisher.publishAfterCommit(ModerationDecisionEvent.builder()
+                .videoId(video.getId())
+                .moderationRequestId(moderationRequest.getId())
+                .moderatorId(moderator.getId())
+                .moderatorUsername(moderator.getUsername())
+                .decision(request.getDecision())
+                .reason(request.getReason())
+                .decidedAt(moderationRequest.getDecidedAt())
+                .build()));
 
         log.info("Решение модератора успешно применено: videoId={}, decision={}", videoId, request.getDecision());
         return ModerationDecisionResponse.builder()

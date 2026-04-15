@@ -27,6 +27,16 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
+  redis:
+    image: redis:7-alpine
+    container_name: youtube_monetization_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
