@@ -28,6 +28,12 @@ spring:
   jta:
     enabled: true
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
 storage:
   minio-enabled: true
   bucket: videos
@@ -53,3 +59,12 @@ security:
     # base64 for 32-byte key: "this-is-very-secret-key-for-jwt!!"
     secret: dGhpcy1pcy12ZXJ5LXNlY3JldC1rZXktZm9yLWp3dCEh
     ttl-minutes: 60
+
+app:
+  rabbitmq:
+    enabled: true
+  messaging:
+    moderation:
+      exchange: youtube.moderation.exchange
+      queue: youtube.moderation.queue
+      routing-key: moderation.decision
