@@ -28,6 +28,11 @@ spring:
   jta:
     enabled: true
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
 storage:
   minio-enabled: true
   bucket: videos
@@ -53,3 +58,10 @@ security:
     # base64 for 32-byte key: "this-is-very-secret-key-for-jwt!!"
     secret: dGhpcy1pcy12ZXJ5LXNlY3JldC1rZXktZm9yLWp3dCEh
     ttl-minutes: 60
+
+app:
+  redis:
+    enabled: true
+  messaging:
+    moderation:
+      channel: moderation.decision
