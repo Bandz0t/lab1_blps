@@ -1,0 +1,288 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2023-10-25T12:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "req_1",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/users",
+      "name": "1. Create User (Author)",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"author1\",\n  \"email\": \"author1@example.com\",\n  \"role\": \"AUTHOR\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1000000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_2",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/users",
+      "name": "2. Create User (Moderator)",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"moderator1\",\n  \"email\": \"mod@example.com\",\n  \"role\": \"MODERATOR\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -900000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_3",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/channels",
+      "name": "3. Create Channel",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"userId\": 1,\n  \"name\": \"My Tech Channel\",\n  \"description\": \"Java coding\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -800000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_4",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/channels/1/videos",
+      "name": "4. Upload Video",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Spring Boot Tutorial\",\n  \"description\": \"Learn Spring Boot\"\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -700000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_5",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/system/videos/1/process",
+      "name": "5. Process Video",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -600000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_6",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/videos/1/monetization-requests",
+      "name": "6. Apply for Monetization",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -500000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_7",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/moderation/monetization-requests/1/approve",
+      "name": "7. Approve Monetization",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"moderatorId\": 2\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -400000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_8",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/videos/1/publish",
+      "name": "8. Publish Video",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -300000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_9",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/videos/1/views",
+      "name": "9. Add View",
+      "description": "",
+      "method": "POST",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -200000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_10",
+      "parentId": "wrk_1",
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "url": "http://localhost:8080/api/users/1",
+      "name": "10. Check Balance",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -100000000,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "wrk_1",
+      "parentId": null,
+      "modified": 1698235200000,
+      "created": 1698235200000,
+      "name": "YouTube BLPS Lab1",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    }
+  ]
+}
