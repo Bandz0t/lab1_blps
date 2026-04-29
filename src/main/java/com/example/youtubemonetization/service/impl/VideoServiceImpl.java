@@ -12,6 +12,8 @@ import com.example.youtubemonetization.enums.MonetizationType;
 import com.example.youtubemonetization.enums.UploadStatus;
 import com.example.youtubemonetization.enums.ValidationStatus;
 import com.example.youtubemonetization.exception.BusinessException;
+import com.example.youtubemonetization.security.AccessGuard;
+import com.example.youtubemonetization.security.SecurityPrivileges;
 import com.example.youtubemonetization.service.ClaimDataService;
 import com.example.youtubemonetization.service.ProcessService;
 import com.example.youtubemonetization.service.UserDataService;
@@ -31,6 +33,7 @@ public class VideoServiceImpl implements VideoService {
     private final UserDataService userDataService;
     private final ClaimDataService claimDataService;
     private final ProcessService processService;
+    private final AccessGuard accessGuard;
 
     @Override
     public Video createVideo(VideoCreateRequest request) {
@@ -43,6 +46,10 @@ public class VideoServiceImpl implements VideoService {
         if (request.getSizeBytes() == null || request.getSizeBytes() <= 0) {
             throw new BusinessException("Размер файла должен быть положительным");
         }
+
+        accessGuard.requirePrivilege(SecurityPrivileges.VIDEO_CREATE);
+        accessGuard.ensureSelfOrAdmin(request.getAuthorId());
+
         User author = userDataService.getById(request.getAuthorId());
         Video video = new Video();
         video.setAuthor(author);
@@ -65,24 +72,36 @@ public class VideoServiceImpl implements VideoService {
     @Override
     @Transactional(readOnly = true)
     public Video getVideo(Long id) {
-        return videoDataService.getById(id);
+        Video video = videoDataService.getById(id);
+        accessGuard.requireOwnOrAll(video.getAuthor().getId(), SecurityPrivileges.VIDEO_READ_OWN, SecurityPrivileges.VIDEO_READ_ALL);
+        return video;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Video> getVideos(Long authorId) {
-        return authorId == null ? videoDataService.findAll() : videoDataService.getByAuthorId(authorId);
+        if (authorId == null) {
+            if (accessGuard.hasPrivilege(SecurityPrivileges.VIDEO_READ_ALL)) {
+                return videoDataService.findAll();
+            }
+            accessGuard.requirePrivilege(SecurityPrivileges.VIDEO_READ_OWN);
+            return videoDataService.getByAuthorId(accessGuard.currentUserIdOrThrow());
+        }
+        accessGuard.requireSameUserOrAll(authorId, SecurityPrivileges.VIDEO_READ_OWN, SecurityPrivileges.VIDEO_READ_ALL);
+        return videoDataService.getByAuthorId(authorId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Video> getAllVideos() {
+        accessGuard.requirePrivilege(SecurityPrivileges.VIDEO_READ_ALL);
         return videoDataService.findAll();
     }
 
     @Override
     public Video editVideo(Long id, EditVideoRequest request) {
         Video video = videoDataService.getById(id);
+        accessGuard.requireOwnOrAll(video.getAuthor().getId(), SecurityPrivileges.VIDEO_EDIT_OWN, SecurityPrivileges.VIDEO_EDIT_ALL);
         if (video.getCopyrightStatus() != CopyrightStatus.NEEDS_EDITING) {
             throw new BusinessException("Редактирование доступно только для видео с найденным нарушением авторских прав");
         }

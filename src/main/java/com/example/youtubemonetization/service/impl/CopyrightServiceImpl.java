@@ -12,6 +12,8 @@ import com.example.youtubemonetization.enums.UploadStatus;
 import com.example.youtubemonetization.enums.ValidationStatus;
 import com.example.youtubemonetization.exception.BusinessException;
 import com.example.youtubemonetization.exception.RequestValidationException;
+import com.example.youtubemonetization.security.AccessGuard;
+import com.example.youtubemonetization.security.SecurityPrivileges;
 import com.example.youtubemonetization.service.ClaimDataService;
 import com.example.youtubemonetization.service.CopyrightService;
 import com.example.youtubemonetization.service.VideoDataService;
@@ -51,6 +53,7 @@ public class CopyrightServiceImpl implements CopyrightService {
     private final VideoDataService videoDataService;
     private final ClaimDataService claimDataService;
     private final VideoStorageService videoStorageService;
+    private final AccessGuard accessGuard;
 
     @Value("${copyright.banned-words:good,morning,sure,everybody}")
     private List<String> bannedWords;
@@ -61,6 +64,7 @@ public class CopyrightServiceImpl implements CopyrightService {
 
     @Override
     public Video processCopyrightCheck(Long videoId, CopyrightCheckRequest request) {
+        accessGuard.requirePrivilege(SecurityPrivileges.COPYRIGHT_REVIEW);
         Video video = videoDataService.getById(videoId);
         assertReadyForCheck(video);
 

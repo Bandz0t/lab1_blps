@@ -12,12 +12,14 @@ import java.io.InputStream;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 @ConditionalOnBean(type = "io.minio.MinioClient")
+@ConditionalOnProperty(prefix = "storage", name = "minio-enabled", havingValue = "true")
 public class MinioVideoStorageService implements VideoStorageService {
 
     private final MinioClient minioClient;

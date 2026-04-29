@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             targetNamespace="http://bpmn.io/schema/bpmn">
+  <process id="youtube_monetization_process" name="YouTube Video Monetization Process with JWT, JAAS and JTA" isExecutable="true">
+    <laneSet id="LaneSet_roles">
+      <lane id="Lane_author" name="AUTHOR">
+        <flowNodeRef>Event_start_login</flowNodeRef>
+        <flowNodeRef>Activity_jwt_login</flowNodeRef>
+        <flowNodeRef>Activity_upload_video</flowNodeRef>
+        <flowNodeRef>Activity_edit_video</flowNodeRef>
+        <flowNodeRef>Activity_choose_monetization</flowNodeRef>
+      </lane>
+      <lane id="Lane_moderator" name="MODERATOR">
+        <flowNodeRef>Activity_check_copyright</flowNodeRef>
+      </lane>
+      <lane id="Lane_admin" name="ADMIN">
+        <flowNodeRef>Timer_monthly</flowNodeRef>
+        <flowNodeRef>Activity_calculate_revenue</flowNodeRef>
+        <flowNodeRef>Activity_process_payout</flowNodeRef>
+      </lane>
+      <lane id="Lane_system" name="Spring Boot / Atomikos">
+        <flowNodeRef>Activity_validate_video</flowNodeRef>
+        <flowNodeRef>Gateway_validation</flowNodeRef>
+        <flowNodeRef>Gateway_copyright</flowNodeRef>
+        <flowNodeRef>Activity_check_monetization</flowNodeRef>
+        <flowNodeRef>Gateway_monetization</flowNodeRef>
+        <flowNodeRef>Activity_enable_monetization</flowNodeRef>
+        <flowNodeRef>Activity_disable_monetization</flowNodeRef>
+        <flowNodeRef>Event_published_end</flowNodeRef>
+        <flowNodeRef>Event_rejected_end</flowNodeRef>
+      </lane>
+    </laneSet>
+
+    <startEvent id="Event_start_login" name="Пользователь открывает приложение">
+      <outgoing>Flow_start_to_login</outgoing>
+    </startEvent>
+    <userTask id="Activity_jwt_login" name="JAAS-аутентификация и выдача JWT">
+      <incoming>Flow_start_to_login</incoming>
+      <outgoing>Flow_login_to_upload</outgoing>
+    </userTask>
+    <userTask id="Activity_upload_video" name="AUTHOR: загрузка видео">
+      <incoming>Flow_login_to_upload</incoming>
+      <outgoing>Flow_upload_to_validate</outgoing>
+    </userTask>
+    <serviceTask id="Activity_validate_video" name="JTA TX: создание metadata и техническая проверка">
+      <incoming>Flow_upload_to_validate</incoming>
+      <outgoing>Flow_validate_to_gateway</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="Gateway_validation" name="Видео валидно?">
+      <incoming>Flow_validate_to_gateway</incoming>
+      <outgoing>Flow_valid</outgoing>
+      <outgoing>Flow_invalid</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="Activity_check_copyright" name="MODERATOR/COPYRIGHT_REVIEW: проверка прав">
+      <incoming>Flow_valid</incoming>
+      <incoming>Flow_edit_to_check</incoming>
+      <outgoing>Flow_copyright_to_gateway</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="Gateway_copyright" name="Есть нарушения?">
+      <incoming>Flow_copyright_to_gateway</incoming>
+      <outgoing>Flow_to_edit</outgoing>
+      <outgoing>Flow_to_monetization</outgoing>
+    </exclusiveGateway>
+    <userTask id="Activity_edit_video" name="AUTHOR: редактирование видео">
+      <incoming>Flow_to_edit</incoming>
+      <outgoing>Flow_edit_to_check</outgoing>
+    </userTask>
+    <userTask id="Activity_choose_monetization" name="AUTHOR: выбор монетизации">
+      <incoming>Flow_to_monetization</incoming>
+      <outgoing>Flow_monetization_check</outgoing>
+    </userTask>
+    <serviceTask id="Activity_check_monetization" name="Проверка правил монетизации">
+      <incoming>Flow_monetization_check</incoming>
+      <outgoing>Flow_monetization_gateway</outgoing>
+    </serviceTask>
+    <exclusiveGateway id="Gateway_monetization" name="Монетизация разрешена?">
+      <incoming>Flow_monetization_gateway</incoming>
+      <outgoing>Flow_enable</outgoing>
+      <outgoing>Flow_disable</outgoing>
+    </exclusiveGateway>
+    <serviceTask id="Activity_enable_monetization" name="Включение монетизации">
+      <incoming>Flow_enable</incoming>
+      <outgoing>Flow_publish</outgoing>
+    </serviceTask>
+    <serviceTask id="Activity_disable_monetization" name="Отключение монетизации">
+      <incoming>Flow_disable</incoming>
+      <outgoing>Flow_publish_disabled</outgoing>
+    </serviceTask>
+    <endEvent id="Event_published_end" name="Видео опубликовано">
+      <incoming>Flow_publish</incoming>
+      <incoming>Flow_publish_disabled</incoming>
+    </endEvent>
+    <endEvent id="Event_rejected_end" name="Видео отклонено">
+      <incoming>Flow_invalid</incoming>
+    </endEvent>
+
+    <intermediateCatchEvent id="Timer_monthly" name="ADMIN: запуск месячного процесса">
+      <timerEventDefinition>
+        <timeCycle>0 0 0 1 * ?</timeCycle>
+      </timerEventDefinition>
+      <outgoing>Flow_monthly_revenue</outgoing>
+    </intermediateCatchEvent>
+    <serviceTask id="Activity_calculate_revenue" name="JTA TX: расчет доходов опубликованных видео">
+      <incoming>Flow_monthly_revenue</incoming>
+      <outgoing>Flow_monthly_payout</outgoing>
+    </serviceTask>
+    <serviceTask id="Activity_process_payout" name="JTA TX: создание выплат авторам">
+      <incoming>Flow_monthly_payout</incoming>
+    </serviceTask>
+
+    <textAnnotation id="Annotation_auth">
+      <text>Доступ к REST API: JWT Bearer. Доступ к UI: HttpOnly JWT cookie. Аутентификация выполняется через JAAS LoginModule.</text>
+    </textAnnotation>
+    <textAnnotation id="Annotation_transactions">
+      <text>Транзакционные границы Spring JTA/Atomikos: createVideo, copyright decision/edit loop, monthly revenue+payout.</text>
+    </textAnnotation>
+
+    <association id="Association_auth" sourceRef="Activity_jwt_login" targetRef="Annotation_auth" />
+    <association id="Association_transactions" sourceRef="Activity_calculate_revenue" targetRef="Annotation_transactions" />
+
+    <sequenceFlow id="Flow_start_to_login" sourceRef="Event_start_login" targetRef="Activity_jwt_login" />
+    <sequenceFlow id="Flow_login_to_upload" sourceRef="Activity_jwt_login" targetRef="Activity_upload_video" />
+    <sequenceFlow id="Flow_upload_to_validate" sourceRef="Activity_upload_video" targetRef="Activity_validate_video" />
+    <sequenceFlow id="Flow_validate_to_gateway" sourceRef="Activity_validate_video" targetRef="Gateway_validation" />
+    <sequenceFlow id="Flow_valid" sourceRef="Gateway_validation" targetRef="Activity_check_copyright" />
+    <sequenceFlow id="Flow_invalid" sourceRef="Gateway_validation" targetRef="Event_rejected_end" />
+    <sequenceFlow id="Flow_copyright_to_gateway" sourceRef="Activity_check_copyright" targetRef="Gateway_copyright" />
+    <sequenceFlow id="Flow_to_edit" sourceRef="Gateway_copyright" targetRef="Activity_edit_video" />
+    <sequenceFlow id="Flow_edit_to_check" sourceRef="Activity_edit_video" targetRef="Activity_check_copyright" />
+    <sequenceFlow id="Flow_to_monetization" sourceRef="Gateway_copyright" targetRef="Activity_choose_monetization" />
+    <sequenceFlow id="Flow_monetization_check" sourceRef="Activity_choose_monetization" targetRef="Activity_check_monetization" />
+    <sequenceFlow id="Flow_monetization_gateway" sourceRef="Activity_check_monetization" targetRef="Gateway_monetization" />
+    <sequenceFlow id="Flow_enable" sourceRef="Gateway_monetization" targetRef="Activity_enable_monetization" />
+    <sequenceFlow id="Flow_disable" sourceRef="Gateway_monetization" targetRef="Activity_disable_monetization" />
+    <sequenceFlow id="Flow_publish" sourceRef="Activity_enable_monetization" targetRef="Event_published_end" />
+    <sequenceFlow id="Flow_publish_disabled" sourceRef="Activity_disable_monetization" targetRef="Event_published_end" />
+    <sequenceFlow id="Flow_monthly_revenue" sourceRef="Timer_monthly" targetRef="Activity_calculate_revenue" />
+    <sequenceFlow id="Flow_monthly_payout" sourceRef="Activity_calculate_revenue" targetRef="Activity_process_payout" />
+  </process>
+</definitions>

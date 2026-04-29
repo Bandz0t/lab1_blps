@@ -6,13 +6,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-@ConditionalOnMissingBean(VideoStorageService.class)
+@ConditionalOnProperty(prefix = "storage", name = "minio-enabled", havingValue = "false", matchIfMissing = true)
 public class LocalVideoStorageService implements VideoStorageService {
 
     private static final Path STORAGE_DIR = Path.of(System.getProperty("java.io.tmpdir"), "youtube-monetization-videos");

@@ -12,6 +12,7 @@ import com.example.youtubemonetization.service.VideoService;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,6 +35,7 @@ public class VideoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('VIDEO_CREATE')")
     public VideoResponse createVideo(@Valid @RequestBody VideoCreateRequest request) {
         return videoMapper.toResponse(videoService.createVideo(request));
     }
@@ -49,6 +51,7 @@ public class VideoController {
     }
 
     @PostMapping("/{id}/edit")
+    @PreAuthorize("hasAnyAuthority('VIDEO_EDIT_OWN','VIDEO_EDIT_ALL')")
     public VideoResponse editVideo(@PathVariable Long id, @Valid @RequestBody EditVideoRequest request) {
         return videoMapper.toResponse(videoService.editVideo(id, request));
     }
@@ -59,6 +62,7 @@ public class VideoController {
     }
 
     @PostMapping("/{id}/copyright-check")
+    @PreAuthorize("hasAuthority('COPYRIGHT_REVIEW')")
     public VideoStatusResponse checkCopyright(@PathVariable Long id, @RequestBody CopyrightCheckRequest request) {
         return videoMapper.toStatusResponse(copyrightService.processCopyrightCheck(id, request), processService.resolveCurrentStep(id));
     }

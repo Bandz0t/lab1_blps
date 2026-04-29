@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +33,7 @@ public class PayoutController {
     }
 
     @PostMapping("/payouts/process-monthly")
+    @PreAuthorize("hasAuthority('MONTHLY_PROCESS_RUN')")
     public MonthlyProcessResponse processMonthly(@Valid @RequestBody(required = false) MonthlyProcessRequest request) {
         return processService.runMonthlyRevenueProcess(
                 request == null ? Optional.empty() : Optional.ofNullable(request.getYear()),

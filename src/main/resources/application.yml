@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
@@ -19,6 +19,13 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+    validate-on-migrate: false
+  jta:
+    enabled: true
+    atomikos:
+      properties:
+        transaction-manager-unique-name: youtube-monetization-tm
+        default-jta-timeout: 60
   servlet:
     multipart:
       max-file-size: 2GB
@@ -44,3 +51,8 @@ copyright:
   vosk-model-path: models/vosk-model-small-en-us-0.15
   banned-words: good,morning,sure,everybody
   ffmpeg-binary: ffmpeg
+
+security:
+  jwt:
+    secret: change-this-lab2-secret-change-this-lab2-secret
+    ttl-seconds: 86400

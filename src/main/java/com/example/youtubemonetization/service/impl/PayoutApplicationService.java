@@ -4,6 +4,8 @@ import com.example.youtubemonetization.entity.Payout;
 import com.example.youtubemonetization.entity.User;
 import com.example.youtubemonetization.enums.PayoutStatus;
 import com.example.youtubemonetization.exception.ConflictException;
+import com.example.youtubemonetization.security.AccessGuard;
+import com.example.youtubemonetization.security.SecurityPrivileges;
 import com.example.youtubemonetization.service.PayoutDataService;
 import com.example.youtubemonetization.service.RevenueDataService;
 import com.example.youtubemonetization.service.UserDataService;
@@ -24,8 +26,10 @@ public class PayoutApplicationService {
     private final PayoutDataService payoutDataService;
     private final RevenueDataService revenueDataService;
     private final UserDataService userDataService;
+    private final AccessGuard accessGuard;
 
     public List<Payout> createMonthlyPayouts(YearMonth period) {
+        accessGuard.requirePrivilege(SecurityPrivileges.MONTHLY_PROCESS_RUN);
         List<Payout> payouts = new ArrayList<>();
         for (User user : userDataService.findAll()) {
             payoutDataService.findByUserIdAndPeriod(user.getId(), period.getYear(), period.getMonthValue())

@@ -12,6 +12,7 @@
         <p class="muted">Войдите под своей ролью: автор, модератор или администратор.</p>
 
         <div class="alert alert-danger" th:if="${param.error}">Неверный логин или пароль.</div>
+        <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
         <div class="alert alert-success" th:if="${param.logout}">Вы вышли из аккаунта.</div>
         <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
 

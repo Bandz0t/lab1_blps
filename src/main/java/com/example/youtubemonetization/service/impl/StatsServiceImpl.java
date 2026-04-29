@@ -3,6 +3,8 @@ package com.example.youtubemonetization.service.impl;
 import com.example.youtubemonetization.dto.response.AuthorStatsResponse;
 import com.example.youtubemonetization.dto.response.RevenueResponse;
 import com.example.youtubemonetization.mapper.RevenueMapper;
+import com.example.youtubemonetization.security.AccessGuard;
+import com.example.youtubemonetization.security.SecurityPrivileges;
 import com.example.youtubemonetization.service.RevenueService;
 import com.example.youtubemonetization.service.StatsService;
 import com.example.youtubemonetization.service.UserDataService;
@@ -22,9 +24,11 @@ public class StatsServiceImpl implements StatsService {
     private final RevenueService revenueService;
     private final RevenueMapper revenueMapper;
     private final UserDataService userDataService;
+    private final AccessGuard accessGuard;
 
     @Override
     public AuthorStatsResponse getAuthorStats(Long userId, Optional<Integer> year, Optional<Integer> month) {
+        accessGuard.requireSameUserOrAll(userId, SecurityPrivileges.REVENUE_READ_OWN, SecurityPrivileges.REVENUE_READ_ALL);
         userDataService.getById(userId);
         List<RevenueResponse> revenues = revenueService.getByAuthor(userId, year.orElse(null), month.orElse(null)).stream()
                 .map(revenueMapper::toResponse)

@@ -11,6 +11,8 @@ import com.example.youtubemonetization.enums.CopyrightStatus;
 import com.example.youtubemonetization.enums.UploadStatus;
 import com.example.youtubemonetization.enums.ValidationStatus;
 import com.example.youtubemonetization.exception.IllegalProcessStateException;
+import com.example.youtubemonetization.security.AccessGuard;
+import com.example.youtubemonetization.security.SecurityPrivileges;
 import com.example.youtubemonetization.mapper.PayoutMapper;
 import com.example.youtubemonetization.mapper.RevenueMapper;
 import com.example.youtubemonetization.service.CopyrightService;
@@ -40,6 +42,7 @@ public class ProcessServiceImpl implements ProcessService {
     private final PayoutApplicationService payoutApplicationService;
     private final RevenueMapper revenueMapper;
     private final PayoutMapper payoutMapper;
+    private final AccessGuard accessGuard;
 
     @Override
     public void startVideoUploadProcess(Long videoId) {
@@ -59,6 +62,7 @@ public class ProcessServiceImpl implements ProcessService {
     @Transactional(readOnly = true)
     public ProcessStateResponse getProcessState(Long videoId) {
         Video video = videoDataService.getById(videoId);
+        accessGuard.requireOwnOrAll(video.getAuthor().getId(), SecurityPrivileges.PROCESS_READ_OWN, SecurityPrivileges.PROCESS_READ_ALL);
         String currentStep = resolveCurrentStep(videoId);
         return ProcessStateResponse.builder()
                 .videoId(videoId)
@@ -72,6 +76,7 @@ public class ProcessServiceImpl implements ProcessService {
     @Override
     public ProcessStateResponse continueProcess(Long videoId) {
         Video video = videoDataService.getById(videoId);
+        accessGuard.requireOwnOrAll(video.getAuthor().getId(), SecurityPrivileges.PROCESS_READ_OWN, SecurityPrivileges.PROCESS_READ_ALL);
         if (video.getValidationStatus() == ValidationStatus.PENDING) {
             validationService.validateVideo(videoId);
             Video validatedVideo = videoDataService.getById(videoId);
@@ -85,6 +90,7 @@ public class ProcessServiceImpl implements ProcessService {
 
     @Override
     public MonthlyProcessResponse runMonthlyRevenueProcess(Optional<Integer> year, Optional<Integer> month) {
+        accessGuard.requirePrivilege(SecurityPrivileges.MONTHLY_PROCESS_RUN);
         YearMonth period = YearMonth.of(year.orElse(YearMonth.now().getYear()), month.orElse(YearMonth.now().getMonthValue()));
         List<Revenue> revenues = revenueService.calculateMonthlyRevenue(period);
         List<Payout> payouts = payoutApplicationService.createMonthlyPayouts(period);

@@ -1,5 +1,7 @@
 alter table users
-    add column if not exists password_hash varchar(255) not null default '{noop}change-me',
+    add column if not exists password_hash varchar(255) not null default '{noop}change-me';
+
+alter table users
     add column if not exists role varchar(30) not null default 'AUTHOR';
 
 update users

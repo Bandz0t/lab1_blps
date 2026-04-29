@@ -7,6 +7,7 @@ import com.example.youtubemonetization.service.MonetizationService;
 import com.example.youtubemonetization.service.VideoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +25,7 @@ public class MonetizationController {
     private final VideoMapper videoMapper;
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('VIDEO_MONETIZE_OWN','VIDEO_MONETIZE_ALL')")
     public MonetizationResponse chooseMonetization(@PathVariable Long id, @Valid @RequestBody MonetizationRequest request) {
         return videoMapper.toMonetizationResponse(monetizationService.chooseMonetization(id, request.getMonetizationType()));
     }

@@ -13,8 +13,15 @@ public class AppInfoController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("application", "youtube-monetization");
         response.put("status", "UP");
-        response.put("message", "Service is running. Use REST API endpoints under /api or open /login for the web UI.");
+        response.put("message", "Service is running. REST API uses JWT Bearer tokens; web UI stores JWT in an HttpOnly cookie.");
+        response.put("security", Map.of(
+                "authentication", "JWT + JAAS",
+                "roles", new String[] {"AUTHOR", "MODERATOR", "ADMIN"},
+                "transactionManager", "Spring JTA + Atomikos"
+        ));
         response.put("docs", new String[] {
+                "POST /api/auth/login",
+                "GET /api/auth/me",
                 "POST /api/videos",
                 "GET /api/videos/{id}",
                 "GET /api/videos/{id}/status",
