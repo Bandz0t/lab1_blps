@@ -28,10 +28,22 @@ class ModerationControllerSecurityTest {
     private ModerationService moderationService;
 
     @Test
-    @WithMockUser(roles = "MODERATOR")
+    @WithMockUser(authorities = "MODERATION_REVIEW")
     void shouldAllowModeratorWithoutCsrfForApiEndpoint() throws Exception {
         when(moderationService.processModerationDecision(eq(1L), any()))
-                .thenReturn(new ModerationDecisionResponse(1L, "APPROVE", "ok", "APPROVED"));
+                .thenReturn(ModerationDecisionResponse.builder()
+                        .videoId(1L)
+                        .decision("APPROVE")
+                        .videoStatus("APPROVED")
+                        .moderationStatus("APPROVED")
+                        .copyrightStatus("CLEARED")
+                        .monetizationStatus("ENABLED")
+                        .notificationCreated(true)
+                        .auditCreated(true)
+                        .moderatorId(10L)
+                        .moderatorUsername("moderator")
+                        .message("ok")
+                        .build());
 
         mockMvc.perform(post("/api/moderation/videos/1/decision")
                         .contentType("application/json")

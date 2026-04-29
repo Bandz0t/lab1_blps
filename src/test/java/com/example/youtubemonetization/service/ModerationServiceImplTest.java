@@ -25,6 +25,7 @@ import com.example.youtubemonetization.repository.ModerationRequestRepository;
 import com.example.youtubemonetization.repository.UserRepository;
 import com.example.youtubemonetization.repository.VideoRepository;
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,11 +34,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @Transactional
 class ModerationServiceImplTest {
+
+    private static final AtomicInteger USER_SEQUENCE = new AtomicInteger();
 
     @Autowired
     private ModerationService moderationService;
@@ -59,9 +63,11 @@ class ModerationServiceImplTest {
 
     @BeforeEach
     void setUp() {
+        String suffix = String.valueOf(USER_SEQUENCE.incrementAndGet());
+
         author = new User();
-        author.setUsername("author_test");
-        author.setEmail("author_test@example.com");
+        author.setUsername("author_test_" + suffix);
+        author.setEmail("author_test_" + suffix + "@example.com");
         author.setFullName("Author Test");
         author.setChannelName("Author Channel");
         author.setPasswordHash("{noop}pass");
@@ -69,8 +75,8 @@ class ModerationServiceImplTest {
         author = userRepository.save(author);
 
         moderator = new User();
-        moderator.setUsername("moderator_test");
-        moderator.setEmail("moderator_test@example.com");
+        moderator.setUsername("moderator_test_" + suffix);
+        moderator.setEmail("moderator_test_" + suffix + "@example.com");
         moderator.setFullName("Moderator Test");
         moderator.setChannelName("Moderator Channel");
         moderator.setPasswordHash("{noop}pass");
@@ -179,6 +185,7 @@ class ModerationServiceImplTest {
     }
 
     @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void shouldRollbackWhenAuditSaveFails() {
         Video video = createVideoInReview();
         createModerationRequest(video);

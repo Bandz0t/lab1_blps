@@ -2,16 +2,34 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: youtube_monetization_db
+    command: ["postgres", "-c", "max_prepared_transactions=100"]
     environment:
       POSTGRES_DB: youtube_monetization
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "55432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d youtube_monetization"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  postgres_outbox:
+    image: postgres:16-alpine
+    container_name: youtube_monetization_outbox_db
+    command: ["postgres", "-c", "max_prepared_transactions=100"]
+    environment:
+      POSTGRES_DB: youtube_monetization_outbox
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_outbox_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d youtube_monetization_outbox"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,4 +58,5 @@ services:
 
 volumes:
   postgres_data:
+  postgres_outbox_data:
   minio_data:

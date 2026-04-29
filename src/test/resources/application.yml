@@ -9,11 +9,28 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+    locations: classpath:db/test-migration
   jta:
     enabled: false
 
 storage:
   minio-enabled: false
+
+app:
+  redis:
+    enabled: false
+  outbox:
+    datasource:
+      url: jdbc:h2:mem:outboxdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      username: sa
+      password:
+      driver-class-name: org.h2.Driver
+    flyway:
+      enabled: true
+      locations: classpath:db/outbox
+  messaging:
+    moderation:
+      channel: moderation.decision
 
 security:
   jwt:

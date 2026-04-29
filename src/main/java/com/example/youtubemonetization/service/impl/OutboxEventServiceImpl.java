@@ -5,33 +5,33 @@ import com.example.youtubemonetization.dto.event.ModerationDecisionEvent;
 import com.example.youtubemonetization.entity.OutboxEvent;
 import com.example.youtubemonetization.enums.OutboxEventStatus;
 import com.example.youtubemonetization.exception.EntityNotFoundException;
-import com.example.youtubemonetization.repository.OutboxEventRepository;
+import com.example.youtubemonetization.repository.OutboxEventJdbcRepository;
 import com.example.youtubemonetization.service.messaging.OutboxEventService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.connection.RedisConnection;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-@ConditionalOnProperty(name = "app.redis.enabled", havingValue = "true", matchIfMissing = true)
 public class OutboxEventServiceImpl implements OutboxEventService {
 
-    private final OutboxEventRepository outboxEventRepository;
+    private final OutboxEventJdbcRepository outboxEventRepository;
     private final ObjectMapper objectMapper;
     private final ModerationMessagingProperties messagingProperties;
-    private final StringRedisTemplate stringRedisTemplate;
+
+    @Value("${app.outbox.lock.ttl-seconds:30}")
+    private long lockTtlSeconds;
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public void enqueueModerationDecisionEvent(ModerationDecisionEvent event) {
-        assertRedisAvailable();
         OutboxEvent outboxEvent = new OutboxEvent();
         outboxEvent.setEventType("MODERATION_DECISION");
         outboxEvent.setAggregateType("VIDEO");
@@ -43,48 +43,29 @@ public class OutboxEventServiceImpl implements OutboxEventService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<OutboxEvent> getPendingEvents() {
-        return outboxEventRepository.findTop100ByStatusOrderByCreatedAtAsc(OutboxEventStatus.NEW);
+        return outboxEventRepository.claimPending(100, Duration.ofSeconds(lockTtlSeconds));
     }
 
     @Override
     public void markSent(Long outboxEventId) {
-        OutboxEvent outboxEvent = outboxEventRepository.findById(outboxEventId)
+        outboxEventRepository.findById(outboxEventId)
                 .orElseThrow(() -> new EntityNotFoundException("Outbox event not found: id=" + outboxEventId));
-        outboxEvent.setStatus(OutboxEventStatus.SENT);
-        outboxEvent.setError(null);
-        outboxEvent.setSentAt(LocalDateTime.now());
-        outboxEventRepository.save(outboxEvent);
+        outboxEventRepository.markSent(outboxEventId);
     }
 
     @Override
     public void markFailed(Long outboxEventId, String errorMessage) {
-        OutboxEvent outboxEvent = outboxEventRepository.findById(outboxEventId)
+        outboxEventRepository.findById(outboxEventId)
                 .orElseThrow(() -> new EntityNotFoundException("Outbox event not found: id=" + outboxEventId));
-        outboxEvent.setStatus(OutboxEventStatus.FAILED);
-        outboxEvent.setError(errorMessage);
-        outboxEvent.setAttempts(outboxEvent.getAttempts() + 1);
-        outboxEventRepository.save(outboxEvent);
+        outboxEventRepository.markFailed(outboxEventId, errorMessage);
     }
 
     private String toJson(ModerationDecisionEvent event) {
         try {
             return objectMapper.writeValueAsString(event);
         } catch (JsonProcessingException exception) {
-            throw new IllegalStateException("Не удалось сериализовать событие модерации для outbox", exception);
-        }
-    }
-
-    private void assertRedisAvailable() {
-        if (stringRedisTemplate.getConnectionFactory() == null) {
-            throw new IllegalStateException("Redis connection factory не настроен");
-        }
-        try (RedisConnection redisConnection = stringRedisTemplate.getConnectionFactory().getConnection()) {
-            String pingResponse = redisConnection.ping();
-            if (!"PONG".equalsIgnoreCase(pingResponse)) {
-                throw new IllegalStateException("Redis недоступен (PING != PONG)");
-            }
+            throw new IllegalStateException("Failed to serialize moderation outbox event", exception);
         }
     }
 }

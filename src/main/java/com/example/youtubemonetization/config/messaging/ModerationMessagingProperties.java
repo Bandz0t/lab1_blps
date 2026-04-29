@@ -9,5 +9,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.messaging.moderation")
 public class ModerationMessagingProperties {
 
-    private String channel;
+    private String channel = "moderation.decision";
 }

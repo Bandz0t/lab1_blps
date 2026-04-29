@@ -3,7 +3,7 @@ spring:
     name: youtube-monetization
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/youtube_monetization
+    url: jdbc:postgresql://127.0.0.1:55432/youtube_monetization
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -32,6 +32,8 @@ spring:
     redis:
       host: localhost
       port: 6379
+      repositories:
+        enabled: false
 
 storage:
   minio-enabled: true
@@ -62,6 +64,20 @@ security:
 app:
   redis:
     enabled: true
+  outbox:
+    datasource:
+      url: jdbc:postgresql://127.0.0.1:5433/youtube_monetization_outbox
+      username: postgres
+      password: postgres
+      driver-class-name: org.postgresql.Driver
+      unique-resource-name: youtubeMonetizationOutboxXaDs
+      min-pool-size: 2
+      max-pool-size: 10
+    flyway:
+      enabled: true
+      locations: classpath:db/outbox
+    lock:
+      ttl-seconds: 30
   messaging:
     moderation:
       channel: moderation.decision
