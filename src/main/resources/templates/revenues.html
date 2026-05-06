@@ -7,72 +7,82 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <section class="panel">
-            <div class="panel-header">
-                <div>
-                    <div class="eyebrow">Экран 8</div>
-                    <h2>Статистика доходов 📈</h2>
-                </div>
-                <form method="get" th:action="@{/revenues}" class="inline-form">
-                    <input type="number" name="year" th:value="${selectedYear}" min="2000">
-                    <input type="number" name="month" th:value="${selectedMonth}" min="1" max="12">
-                    <button class="button" type="submit">Фильтр</button>
-                </form>
-            </div>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
 
-            <section class="cards-grid compact-gap">
-                <article class="stat-card">
-                    <span>Доход за период</span>
-                    <strong th:text="${@ui.money(stats.totalRevenue, 'USD')}">0.00 USD</strong>
-                </article>
-                <article class="stat-card">
-                    <span>Просмотры</span>
-                    <strong th:text="${stats.totalViews}">0</strong>
-                </article>
-                <article class="stat-card">
-                    <span>Monetized views</span>
-                    <strong th:text="${stats.totalMonetizedViews}">0</strong>
-                </article>
-                <article class="stat-card">
-                    <span>Видео в отчете</span>
-                    <strong th:text="${revenues.size()}">0</strong>
-                </article>
-            </section>
+            <main class="content">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
 
-            <table>
-                <thead>
-                <tr>
-                    <th>Видео</th>
-                    <th>Период</th>
-                    <th>Views</th>
-                    <th>Monetized</th>
-                    <th>CPM</th>
-                    <th>Сумма</th>
-                    <th>Валюта</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="revenue : ${revenues}">
-                    <td>
-                        <a th:href="@{/videos/{id}(id=${revenue.video.id})}" th:text="${revenue.video.title}">Video</a>
-                    </td>
-                    <td th:text="${revenue.periodMonth + '/' + revenue.periodYear}">3/2026</td>
-                    <td th:text="${revenue.viewsCount}">0</td>
-                    <td th:text="${revenue.monetizedViews}">0</td>
-                    <td th:text="${revenue.cpm}">0</td>
-                    <td th:text="${@ui.money(revenue.amount, revenue.currency)}">0.00 USD</td>
-                    <td th:text="${revenue.currency}">USD</td>
-                </tr>
-                <tr th:if="${revenues.isEmpty()}">
-                    <td colspan="7">За выбранный период доходов пока нет.</td>
-                </tr>
-                </tbody>
-            </table>
-        </section>
-    </main>
+                <section class="panel glass-panel">
+                    <div class="panel-header">
+                        <div>
+                            <div class="eyebrow">Экран 8</div>
+                            <h2>Статистика доходов</h2>
+                            <p class="metric-note">Агрегированные показатели по доходу и детализация по видео.</p>
+                        </div>
+                        <form method="get" th:action="@{/revenues}" class="inline-form">
+                            <input type="number" name="year" th:value="${selectedYear}" min="2000">
+                            <input type="number" name="month" th:value="${selectedMonth}" min="1" max="12">
+                            <button class="button" type="submit">Фильтр</button>
+                        </form>
+                    </div>
+
+                    <section class="cards-grid compact-gap">
+                        <article class="stat-card glass-card">
+                            <span>Доход за период</span>
+                            <strong th:text="${@ui.money(stats.totalRevenue, 'USD')}">0.00 USD</strong>
+                        </article>
+                        <article class="stat-card glass-card">
+                            <span>Просмотры</span>
+                            <strong th:text="${stats.totalViews}">0</strong>
+                        </article>
+                        <article class="stat-card glass-card">
+                            <span>Monetized views</span>
+                            <strong th:text="${stats.totalMonetizedViews}">0</strong>
+                        </article>
+                        <article class="stat-card glass-card">
+                            <span>Видео в отчёте</span>
+                            <strong th:text="${revenues.size()}">0</strong>
+                        </article>
+                    </section>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Видео</th>
+                                <th>Период</th>
+                                <th>Views</th>
+                                <th>Monetized</th>
+                                <th>CPM</th>
+                                <th>Сумма</th>
+                                <th>Валюта</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="revenue : ${revenues}">
+                                <td>
+                                    <a th:href="@{/videos/{id}(id=${revenue.video.id})}" th:text="${revenue.video.title}">Video</a>
+                                </td>
+                                <td th:text="${revenue.periodMonth + '/' + revenue.periodYear}">3/2026</td>
+                                <td th:text="${revenue.viewsCount}">0</td>
+                                <td th:text="${revenue.monetizedViews}">0</td>
+                                <td th:text="${revenue.cpm}">0</td>
+                                <td th:text="${@ui.money(revenue.amount, revenue.currency)}">0.00 USD</td>
+                                <td th:text="${revenue.currency}">USD</td>
+                            </tr>
+                            <tr th:if="${revenues.isEmpty()}">
+                                <td colspan="7">За выбранный период доходов пока нет.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>

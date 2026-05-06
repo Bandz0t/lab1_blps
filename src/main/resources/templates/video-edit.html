@@ -7,43 +7,50 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content narrow">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <section class="panel">
-            <div class="eyebrow">Экран 5</div>
-            <h2>Редактирование после claim ✂️</h2>
-            <p>Этот экран показывает цикл доработки: претензия → редактирование → повторная проверка.</p>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
 
-            <div class="claim-card" th:each="claim : ${claims}">
-                <div class="claim-header">
-                    <strong th:text="${claim.claimType}">AUDIO</strong>
-                    <span th:class="${@ui.badgeClass(claim.status)}" th:text="${@ui.statusLabel(claim.status)}"></span>
-                </div>
-                <p th:text="${claim.description ?: 'Описание отсутствует.'}"></p>
-                <div class="muted">Fragment: <span th:text="${claim.detectedFragment ?: '—'}"></span></div>
-            </div>
+            <main class="content narrow">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
 
-            <form method="post" th:action="@{/videos/{id}/edit(id=${video.id})}" th:object="${editForm}" enctype="multipart/form-data" class="form-grid">
-                <label class="full-width">
-                    Новый путь к файлу
-                    <input type="text" th:field="*{newFilePath}" required>
-                </label>
-                <label class="full-width">
-                    Или загрузите обновленный файл
-                    <input type="file" name="videoFile" accept="video/*">
-                </label>
-                <label class="full-width">
-                    Комментарий
-                    <textarea th:field="*{comment}" rows="4"></textarea>
-                </label>
-                <div class="form-actions full-width">
-                    <a class="button button-secondary" th:href="@{/videos/{id}(id=${video.id})}">Назад</a>
-                    <button class="button" type="submit">Отправить на повторную проверку</button>
-                </div>
-            </form>
-        </section>
-    </main>
+                <section class="panel glass-panel">
+                    <div class="eyebrow">Экран 5</div>
+                    <h2>Редактирование после claim</h2>
+                    <p>Этот экран показывает цикл доработки: претензия, редактирование и повторная проверка.</p>
+
+                    <div class="claim-card glass-card" th:each="claim : ${claims}">
+                        <div class="claim-header">
+                            <strong th:text="${claim.claimType}">AUDIO</strong>
+                            <span th:class="${@ui.badgeClass(claim.status)}" th:text="${@ui.statusLabel(claim.status)}"></span>
+                        </div>
+                        <p th:text="${claim.description ?: 'Описание отсутствует.'}"></p>
+                        <div class="muted">Fragment: <span th:text="${claim.detectedFragment ?: '—'}"></span></div>
+                    </div>
+
+                    <form method="post" th:action="@{/videos/{id}/edit(id=${video.id})}" th:object="${editForm}" enctype="multipart/form-data" class="form-grid top-gap">
+                        <label class="full-width">
+                            Новый путь к файлу
+                            <input type="text" th:field="*{newFilePath}" required>
+                        </label>
+                        <label class="full-width">
+                            Или загрузите обновлённый файл
+                            <input type="file" name="videoFile" accept="video/*">
+                        </label>
+                        <label class="full-width">
+                            Комментарий
+                            <textarea th:field="*{comment}" rows="4"></textarea>
+                        </label>
+                        <div class="form-actions full-width">
+                            <a class="button button-secondary" th:href="@{/videos/{id}(id=${video.id})}">Назад</a>
+                            <button class="button" type="submit">Отправить на повторную проверку</button>
+                        </div>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>

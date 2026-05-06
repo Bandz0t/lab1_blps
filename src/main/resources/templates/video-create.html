@@ -7,35 +7,43 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content narrow">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <section class="panel">
-            <div class="eyebrow">Экран 2</div>
-            <h2>Загрузка нового видео ⬆️</h2>
-            <p>Форма создает сущность <code>Video</code> и автоматически запускает производственный цикл публикации.</p>
-            <form method="post" th:action="@{/videos/create}" th:object="${videoForm}" enctype="multipart/form-data" class="form-grid">
-                <input type="hidden" th:field="*{authorId}">
-                <label>
-                    Название
-                    <input type="text" th:field="*{title}" required>
-                </label>
-                <label class="full-width">
-                    Описание
-                    <textarea th:field="*{description}" rows="4"></textarea>
-                </label>
-                <label class="full-width">
-                    Видео файл
-                    <input type="file" name="videoFile" accept="video/*" required>
-                </label>
-                <p class="full-width">Длительность определяется автоматически из метаданных загруженного файла. ⏱️</p>
-                <div class="form-actions full-width">
-                    <a class="button button-secondary" th:href="@{/videos}">Назад</a>
-                    <button class="button" type="submit">Загрузить</button>
-                </div>
-            </form>
-        </section>
-    </main>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
+
+            <main class="content narrow">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
+
+                <section class="panel glass-panel">
+                    <div class="eyebrow">Экран 2</div>
+                    <h2>Загрузка нового видео</h2>
+                    <p>Форма создаёт сущность <code>Video</code> и запускает асинхронный цикл технической проверки и публикации.</p>
+
+                    <form method="post" th:action="@{/videos/create}" th:object="${videoForm}" enctype="multipart/form-data" class="form-grid top-gap">
+                        <input type="hidden" th:field="*{authorId}">
+                        <label>
+                            Название
+                            <input type="text" th:field="*{title}" required>
+                        </label>
+                        <label class="full-width">
+                            Описание
+                            <textarea th:field="*{description}" rows="4"></textarea>
+                        </label>
+                        <label class="full-width">
+                            Видео файл
+                            <input type="file" name="videoFile" accept="video/*" required>
+                        </label>
+                        <p class="full-width muted">Длительность определяется автоматически из метаданных загруженного файла.</p>
+                        <div class="form-actions full-width">
+                            <a class="button button-secondary" th:href="@{/videos}">Назад</a>
+                            <button class="button" type="submit">Загрузить</button>
+                        </div>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>

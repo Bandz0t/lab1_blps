@@ -7,122 +7,152 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <section class="panel">
-            <div class="panel-header">
-                <div>
-                    <div class="eyebrow">Экран 4</div>
-                    <h2 th:text="${video.title}">Video title</h2>
-                </div>
-                <div class="hero-actions">
-                    <a class="button button-secondary" th:href="@{/videos}">К списку</a>
-                    <a class="button button-secondary" th:href="@{/videos/{id}/edit(id=${video.id})}">Редактировать</a>
-                    <a class="button" th:href="@{/videos/{id}/monetization(id=${video.id})}">Выбрать монетизацию</a>
-                    <a class="button button-secondary" th:if="${user.role == 'MODERATOR' or user.role == 'ADMIN'}" th:href="@{/moderation}">Панель модерации</a>
-                </div>
-            </div>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
 
-            <div class="detail-grid">
-                <div>
-                    <h3>Метаданные</h3>
-                    <dl class="details">
-                        <div><dt>ID</dt><dd th:text="${video.id}">1</dd></div>
-                        <div><dt>Описание</dt><dd th:text="${video.description ?: '—'}">—</dd></div>
-                        <div><dt>Файл</dt><dd th:text="${video.filePath}">/tmp/demo.mp4</dd></div>
-                        <div><dt>Формат</dt><dd th:text="${video.format}">mp4</dd></div>
-                        <div><dt>Размер</dt><dd th:text="${video.sizeBytes + ' bytes'}">0</dd></div>
-                        <div><dt>Длительность</dt><dd th:text="${video.durationSeconds + ' sec'}">0</dd></div>
-                        <div><dt>Дата загрузки</dt><dd th:text="${@ui.formatDateTime(video.createdAt)}">18.03.2026</dd></div>
-                        <div><dt>workflowInstanceId</dt><dd th:text="${video.processInstanceId}">pid</dd></div>
-                    </dl>
-                </div>
-                <div>
-                    <h3>Статусы</h3>
-                    <div class="status-stack">
-                        <span th:class="${@ui.badgeClass(video.uploadStatus)}" th:text="${@ui.statusLabel(video.uploadStatus)}"></span>
-                        <span th:class="${@ui.badgeClass(video.validationStatus)}" th:text="${@ui.statusLabel(video.validationStatus)}"></span>
-                        <span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span>
-                        <span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span>
+            <main class="content">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
+
+                <section class="panel glass-panel">
+                    <div class="panel-header">
+                        <div>
+                            <div class="eyebrow">Экран 4</div>
+                            <h2 th:text="${video.title}">Video title</h2>
+                            <p class="metric-note">Полная карточка ролика, статус публикации и связанные метрики.</p>
+                        </div>
+
+                        <div class="hero-actions">
+                            <a class="button button-secondary" th:href="@{/videos}">К списку</a>
+                            <a class="button button-secondary" th:href="@{/videos/{id}/edit(id=${video.id})}">Редактировать</a>
+                            <a class="button" th:href="@{/videos/{id}/monetization(id=${video.id})}">Выбрать монетизацию</a>
+                            <a class="button button-secondary"
+                               th:if="${user.role == 'MODERATOR' or user.role == 'ADMIN'}"
+                               th:href="@{/moderation}">Панель модерации</a>
+                        </div>
                     </div>
-                    <dl class="details compact">
-                        <div><dt>Текущий шаг публикации</dt><dd th:text="${@ui.humanStep(processState.currentStep)}">Step</dd></div>
-                        <div><dt>Опубликовано</dt><dd th:text="${@ui.yesNo(video.publishedAt != null)}">Нет</dd></div>
-                        <div><dt>Монетизация</dt><dd th:text="${video.monetizationType}">NONE</dd></div>
-                        <div><dt>Ключ workflow</dt><dd th:text="${processState.bpmnProcessKey}">youtube_monetization_process</dd></div>
-                    </dl>
-                </div>
-            </div>
 
-            <div class="timeline">
-                <div th:class="${@ui.processStepClass(video, 'TECHNICAL_VALIDATION')}">Загрузка → Валидация</div>
-                <div th:class="${@ui.processStepClass(video, 'COPYRIGHT_CHECK')}">Content ID</div>
-                <div th:class="${@ui.processStepClass(video, 'EDIT_REQUIRED')}">Редактирование</div>
-                <div th:class="${@ui.processStepClass(video, 'MONETIZATION')}">Монетизация</div>
-                <div th:class="${@ui.processStepClass(video, 'PUBLISHED')}">Публикация</div>
-                <div th:class="${@ui.processStepClass(video, 'REVENUE')}">Доходы</div>
-            </div>
-        </section>
-        <section class="panel">
-            <div class="panel-header">
-                <h3>Просмотр загруженного видео 🎬</h3>
-            </div>
-            <video controls style="width: 100%; max-height: 540px; border-radius: 12px;"
-                   th:src="@{/videos/{id}/stream(id=${video.id})}">
-                Ваш браузер не поддерживает воспроизведение видео.
-            </video>
-        </section>
+                    <div class="detail-grid">
+                        <div>
+                            <h3>Метаданные</h3>
+                            <dl class="details">
+                                <div><dt>ID</dt><dd th:text="${video.id}">1</dd></div>
+                                <div><dt>Описание</dt><dd th:text="${video.description ?: '—'}">—</dd></div>
+                                <div><dt>Файл</dt><dd th:text="${video.filePath}">/tmp/demo.mp4</dd></div>
+                                <div><dt>Формат</dt><dd th:text="${video.format}">mp4</dd></div>
+                                <div><dt>Размер</dt><dd th:text="${video.sizeBytes + ' bytes'}">0</dd></div>
+                                <div><dt>Длительность</dt><dd th:text="${video.durationSeconds + ' sec'}">0</dd></div>
+                                <div><dt>Дата загрузки</dt><dd th:text="${@ui.formatDateTime(video.createdAt)}">18.03.2026</dd></div>
+                                <div><dt>workflowInstanceId</dt><dd th:text="${video.processInstanceId}">pid</dd></div>
+                            </dl>
+                        </div>
 
-        <section class="grid-2">
-            <article class="panel">
-                <div class="panel-header">
-                    <h3>Claims и результат модерации</h3>
-                    <span class="muted">Проверка авторских прав выполняется в панели модерации 🔁</span>
-                </div>
-                <h4>Claims</h4>
-                <div class="claim-card" th:each="claim : ${claims}">
-                    <div class="claim-header">
-                        <strong th:text="${claim.claimType}">AUDIO</strong>
-                        <span th:class="${@ui.badgeClass(claim.status)}" th:text="${@ui.statusLabel(claim.status)}"></span>
+                        <div>
+                            <h3>Статусы</h3>
+                            <div class="status-stack bottom-gap">
+                                <span th:class="${@ui.badgeClass(video.uploadStatus)}" th:text="${@ui.statusLabel(video.uploadStatus)}"></span>
+                                <span th:class="${@ui.badgeClass(video.validationStatus)}" th:text="${@ui.statusLabel(video.validationStatus)}"></span>
+                                <span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span>
+                                <span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span>
+                            </div>
+
+                            <dl class="details compact">
+                                <div><dt>Текущий шаг публикации</dt><dd th:text="${processState.currentStep}">Step</dd></div>
+                                <div><dt>Опубликовано</dt><dd th:text="${video.publishedAt != null ? 'Да' : 'Нет'}">Нет</dd></div>
+                                <div><dt>Монетизация</dt><dd th:text="${video.monetizationType}">NONE</dd></div>
+                                <div><dt>Ключ workflow</dt><dd th:text="${processState.bpmnProcessKey}">youtube_monetization_process</dd></div>
+                            </dl>
+                        </div>
                     </div>
-                    <p th:text="${claim.description ?: 'Описание отсутствует.'}"></p>
-                    <div class="muted">Fragment: <span th:text="${claim.detectedFragment ?: '—'}"></span></div>
-                </div>
-                <div class="empty-state" th:if="${claims.isEmpty()}">Нарушений пока не найдено.</div>
-            </article>
 
-            <article class="panel">
-                <div class="panel-header">
-                    <h3>Доходы по видео</h3>
-                    <a th:href="@{/processes/{videoId}(videoId=${video.id})}">Открыть детали обработки →</a>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Период</th>
-                        <th>Views</th>
-                        <th>Monetized</th>
-                        <th>CPM</th>
-                        <th>Amount</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="revenue : ${revenues}">
-                        <td th:text="${revenue.periodMonth + '/' + revenue.periodYear}">3/2026</td>
-                        <td th:text="${revenue.viewsCount}">0</td>
-                        <td th:text="${revenue.monetizedViews}">0</td>
-                        <td th:text="${revenue.cpm}">0.00</td>
-                        <td th:text="${@ui.money(revenue.amount, revenue.currency)}">0.00 USD</td>
-                    </tr>
-                    <tr th:if="${revenues.isEmpty()}">
-                        <td colspan="5">Доходы появятся после закрытия периода.</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </article>
-        </section>
-    </main>
+                    <div class="timeline">
+                        <div th:class="${@ui.processStepClass(video, 'TECHNICAL_VALIDATION')}">Загрузка → Валидация</div>
+                        <div th:class="${@ui.processStepClass(video, 'COPYRIGHT_CHECK')}">Content ID</div>
+                        <div th:class="${@ui.processStepClass(video, 'EDIT_REQUIRED')}">Редактирование</div>
+                        <div th:class="${@ui.processStepClass(video, 'MONETIZATION')}">Монетизация</div>
+                        <div th:class="${@ui.processStepClass(video, 'PUBLISHED')}">Публикация</div>
+                        <div th:class="${@ui.processStepClass(video, 'REVENUE')}">Доходы</div>
+                    </div>
+                </section>
+
+                <section class="panel glass-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Просмотр загруженного видео</h3>
+                            <p class="metric-note">Потоковое воспроизведение исходного файла.</p>
+                        </div>
+                    </div>
+
+                    <div class="video-frame">
+                        <video controls th:src="@{/videos/{id}/stream(id=${video.id})}">
+                            Ваш браузер не поддерживает воспроизведение видео.
+                        </video>
+                    </div>
+                </section>
+
+                <section class="grid-2">
+                    <article class="panel glass-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Claims и результат модерации</h3>
+                                <p class="metric-note">Проверка авторских прав выполняется в панели модерации.</p>
+                            </div>
+                        </div>
+
+                        <h4>Claims</h4>
+
+                        <div class="claim-card glass-card" th:each="claim : ${claims}">
+                            <div class="claim-header">
+                                <strong th:text="${claim.claimType}">AUDIO</strong>
+                                <span th:class="${@ui.badgeClass(claim.status)}" th:text="${@ui.statusLabel(claim.status)}"></span>
+                            </div>
+                            <p th:text="${claim.description ?: 'Описание отсутствует.'}"></p>
+                            <div class="muted">Fragment: <span th:text="${claim.detectedFragment ?: '—'}"></span></div>
+                        </div>
+
+                        <div class="empty-state" th:if="${claims.isEmpty()}">Нарушений пока не найдено.</div>
+                    </article>
+
+                    <article class="panel glass-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Доходы по видео</h3>
+                                <p class="metric-note">История расчётов по ролику за расчётные периоды.</p>
+                            </div>
+                            <a th:href="@{/processes/{videoId}(videoId=${video.id})}">Открыть детали обработки →</a>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>Период</th>
+                                    <th>Views</th>
+                                    <th>Monetized</th>
+                                    <th>CPM</th>
+                                    <th>Amount</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="revenue : ${revenues}">
+                                    <td th:text="${revenue.periodMonth + '/' + revenue.periodYear}">3/2026</td>
+                                    <td th:text="${revenue.viewsCount}">0</td>
+                                    <td th:text="${revenue.monetizedViews}">0</td>
+                                    <td th:text="${revenue.cpm}">0.00</td>
+                                    <td th:text="${@ui.money(revenue.amount, revenue.currency)}">0.00 USD</td>
+                                </tr>
+                                <tr th:if="${revenues.isEmpty()}">
+                                    <td colspan="5">Доходы появятся после закрытия периода.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>

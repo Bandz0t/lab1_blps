@@ -7,53 +7,64 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <section class="grid-2">
-            <article class="panel">
-                <div class="eyebrow">Экран 11</div>
-                <h2>Операционная панель 🧪</h2>
-                <p>Через этот экран удобно выполнить сервисные действия и закрыть расчётный период.</p>
-                <form method="post" th:action="@{/admin/process-monthly}" th:object="${monthlyProcessForm}" class="form-grid">
-                    <label>
-                        Год
-                        <input type="number" th:field="*{year}" min="2000">
-                    </label>
-                    <label>
-                        Месяц
-                        <input type="number" th:field="*{month}" min="1" max="12">
-                    </label>
-                    <div class="form-actions full-width">
-                        <button class="button" type="submit">Рассчитать доход за месяц</button>
-                    </div>
-                </form>
-                <div class="action-list">
-                    <div>• Проверка авторских прав запускается из карточки видео.</div>
-                    <div>• Выбор монетизации доступен после copyright clearance.</div>
-                    <div>• Продолжение технического процесса доступно на странице деталей публикации.</div>
-                </div>
-            </article>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
 
-            <article class="panel">
-                <h3>Быстрые переходы</h3>
-                <div class="actions-column">
-                    <a th:href="@{/dashboard}">Открыть dashboard</a>
-                    <a th:href="@{/videos}">Открыть список видео</a>
-                    <a th:href="@{/revenues}">Открыть доходы</a>
-                    <a th:href="@{/payouts}">Открыть выплаты</a>
-                </div>
-                <h3 class="top-gap">Видео для рабочего цикла</h3>
-                <div class="mini-list" th:if="${!videos.isEmpty()}">
-                    <a class="mini-item" th:each="video : ${videos}" th:href="@{/videos/{id}(id=${video.id})}">
-                        <strong th:text="${video.title}">Video</strong>
-                        <span th:text="${@ui.humanStep(@ui.resolveCurrentStep(video))}">Step</span>
-                    </a>
-                </div>
-                <div class="empty-state" th:if="${videos.isEmpty()}">Сначала создайте хотя бы одно видео.</div>
-            </article>
-        </section>
-    </main>
+            <main class="content">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
+
+                <section class="grid-2">
+                    <article class="panel glass-panel">
+                        <div class="eyebrow">Экран 11</div>
+                        <h2>Операционная панель</h2>
+                        <p>Через этот экран удобно выполнять сервисные действия и закрывать расчётный период для формирования доходов и выплат.</p>
+
+                        <form method="post" th:action="@{/admin/process-monthly}" th:object="${monthlyProcessForm}" class="form-grid top-gap">
+                            <label>
+                                Год
+                                <input type="number" th:field="*{year}" min="2000">
+                            </label>
+                            <label>
+                                Месяц
+                                <input type="number" th:field="*{month}" min="1" max="12">
+                            </label>
+                            <div class="form-actions full-width">
+                                <button class="button" type="submit">Рассчитать доход за месяц</button>
+                            </div>
+                        </form>
+
+                        <div class="action-list top-gap">
+                            <div>• Проверка авторских прав запускается из карточки видео.</div>
+                            <div>• Выбор монетизации доступен после copyright clearance.</div>
+                            <div>• Продолжение технического процесса доступно на странице деталей публикации.</div>
+                        </div>
+                    </article>
+
+                    <article class="panel glass-panel">
+                        <h3>Быстрые переходы</h3>
+                        <div class="actions-column bottom-gap">
+                            <a th:href="@{/dashboard}">Открыть dashboard</a>
+                            <a th:href="@{/videos}">Открыть список видео</a>
+                            <a th:href="@{/revenues}">Открыть доходы</a>
+                            <a th:href="@{/payouts}">Открыть выплаты</a>
+                        </div>
+
+                        <h3 class="top-gap">Видео для рабочего цикла</h3>
+                        <div class="mini-list" th:if="${!videos.isEmpty()}">
+                            <a class="mini-item glass-card" th:each="video : ${videos}" th:href="@{/videos/{id}(id=${video.id})}">
+                                <strong th:text="${video.title}">Video</strong>
+                                <span th:text="${@ui.resolveCurrentStep(video)}">Step</span>
+                            </a>
+                        </div>
+
+                        <div class="empty-state" th:if="${videos.isEmpty()}">Сначала создайте хотя бы одно видео.</div>
+                    </article>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>

@@ -7,104 +7,121 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
 
-        <section class="hero">
-            <div>
-                <div class="eyebrow">Стартовая страница</div>
-                <h2>Обзор канала и состояния публикации 🎬</h2>
-                <p>Здесь видно, сколько видео загружено, сколько прошло монетизацию и какие выплаты уже обработаны.</p>
-            </div>
-            <div class="hero-actions">
-                <a class="button" th:href="@{/videos/create}">Загрузить видео</a>
-                <a class="button button-secondary" th:if="${user != null and user.role == 'ADMIN'}" th:href="@{/admin}">Системные действия</a>
-            </div>
-        </section>
+            <main class="content">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
 
-        <section class="cards-grid">
-            <article class="stat-card">
-                <span>Видео всего</span>
-                <strong th:text="${videos.size()}">0</strong>
-            </article>
-            <article class="stat-card">
-                <span>Опубликовано</span>
-                <strong th:text="${@ui.countPublished(videos)}">0</strong>
-            </article>
-            <article class="stat-card">
-                <span>Монетизируется</span>
-                <strong th:text="${@ui.countMonetized(videos)}">0</strong>
-            </article>
-            <article class="stat-card">
-                <span>Claim / edit</span>
-                <strong th:text="${@ui.countClaims(videos)}">0</strong>
-            </article>
-            <article class="stat-card">
-                <span>Доход за месяц</span>
-                <strong th:text="${@ui.money(stats.totalRevenue, 'USD')}">0.00 USD</strong>
-            </article>
-            <article class="stat-card">
-                <span>Монетизированные просмотры</span>
-                <strong th:text="${stats.totalMonetizedViews}">0</strong>
-            </article>
-        </section>
-
-        <section class="grid-2">
-            <article class="panel">
-                <div class="panel-header">
-                    <h3>Последние видео</h3>
-                    <a th:href="@{/videos}">Открыть список →</a>
-                </div>
-                <table>
-                    <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Название</th>
-                        <th>Текущий шаг</th>
-                        <th>Статусы</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="video : ${videos}">
-                        <td th:text="${video.id}">1</td>
-                        <td>
-                            <a th:href="@{/videos/{id}(id=${video.id})}" th:text="${video.title}">Video</a>
-                        </td>
-                        <td th:text="${@ui.humanStep(@ui.resolveCurrentStep(video))}">Step</td>
-                        <td class="status-stack">
-                            <span th:class="${@ui.badgeClass(video.validationStatus)}" th:text="${@ui.statusLabel(video.validationStatus)}"></span>
-                            <span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span>
-                            <span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span>
-                        </td>
-                    </tr>
-                    <tr th:if="${videos.isEmpty()}">
-                        <td colspan="4">Пока нет видео. Начните с загрузки нового ролика.</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </article>
-
-            <article class="panel">
-                <div class="panel-header">
-                    <h3>Последние выплаты</h3>
-                    <a th:href="@{/payouts}">Все выплаты →</a>
-                </div>
-                <div class="timeline-mini" th:if="${!payouts.isEmpty()}">
-                    <div class="timeline-item" th:each="payout, iter : ${payouts}" th:if="${iter.index < 5}">
-                        <div>
-                            <strong th:text="${payout.periodMonth + '/' + payout.periodYear}">3/2026</strong>
-                            <div class="muted" th:text="${@ui.money(payout.totalAmount, 'USD')}">0.00 USD</div>
-                        </div>
-                        <span th:class="${@ui.payoutBadgeClass(payout.status)}" th:text="${@ui.statusLabel(payout.status)}"></span>
+                <section class="hero glass-panel">
+                    <div>
+                        <div class="eyebrow">Стартовая страница</div>
+                        <h2>Обзор канала и статуса публикации</h2>
+                        <p>Здесь видны текущие ролики, прогресс по монетизации, активность по выплатам и общий срез рабочего процесса.</p>
                     </div>
-                </div>
-                <div class="empty-state" th:if="${payouts.isEmpty()}">
-                    Выплат пока нет. Запустите расчет месяца в разделе Admin.
-                </div>
-            </article>
-        </section>
-    </main>
+                    <div class="hero-actions">
+                        <a class="button" th:href="@{/videos/create}">Загрузить видео</a>
+                        <a class="button button-secondary" th:if="${user != null and user.role == 'ADMIN'}" th:href="@{/admin}">Системные действия</a>
+                    </div>
+                </section>
+
+                <section class="cards-grid">
+                    <article class="stat-card glass-card">
+                        <span>Видео всего</span>
+                        <strong th:text="${videos.size()}">0</strong>
+                    </article>
+                    <article class="stat-card glass-card">
+                        <span>Опубликовано</span>
+                        <strong th:text="${@ui.countPublished(videos)}">0</strong>
+                    </article>
+                    <article class="stat-card glass-card">
+                        <span>Монетизируется</span>
+                        <strong th:text="${@ui.countMonetized(videos)}">0</strong>
+                    </article>
+                    <article class="stat-card glass-card">
+                        <span>Claim / edit</span>
+                        <strong th:text="${@ui.countClaims(videos)}">0</strong>
+                    </article>
+                    <article class="stat-card glass-card">
+                        <span>Доход за месяц</span>
+                        <strong th:text="${@ui.money(stats.totalRevenue, 'USD')}">0.00 USD</strong>
+                    </article>
+                    <article class="stat-card glass-card">
+                        <span>Монетизированные просмотры</span>
+                        <strong th:text="${stats.totalMonetizedViews}">0</strong>
+                    </article>
+                </section>
+
+                <section class="grid-2">
+                    <article class="panel glass-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Последние видео</h3>
+                                <p class="metric-note">Быстрый обзор последней активности и текущих шагов workflow.</p>
+                            </div>
+                            <a th:href="@{/videos}">Открыть список →</a>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Название</th>
+                                    <th>Текущий шаг</th>
+                                    <th>Статусы</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="video : ${videos}">
+                                    <td th:text="${video.id}">1</td>
+                                    <td>
+                                        <a th:href="@{/videos/{id}(id=${video.id})}" th:text="${video.title}">Video</a>
+                                    </td>
+                                    <td th:text="${@ui.resolveCurrentStep(video)}">Step</td>
+                                    <td class="status-stack">
+                                        <span th:class="${@ui.badgeClass(video.validationStatus)}" th:text="${@ui.statusLabel(video.validationStatus)}"></span>
+                                        <span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span>
+                                        <span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span>
+                                    </td>
+                                </tr>
+                                <tr th:if="${videos.isEmpty()}">
+                                    <td colspan="4">Пока нет видео. Начните с загрузки нового ролика.</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </article>
+
+                    <article class="panel glass-panel">
+                        <div class="panel-header">
+                            <div>
+                                <h3>Последние выплаты</h3>
+                                <p class="metric-note">Последние закрытые расчётные периоды и их статусы.</p>
+                            </div>
+                            <a th:href="@{/payouts}">Все выплаты →</a>
+                        </div>
+
+                        <div class="timeline-mini" th:if="${!payouts.isEmpty()}">
+                            <div class="timeline-item glass-card" th:each="payout, iter : ${payouts}" th:if="${iter.index < 5}">
+                                <div>
+                                    <strong th:text="${payout.periodMonth + '/' + payout.periodYear}">3/2026</strong>
+                                    <div class="muted" th:text="${@ui.money(payout.totalAmount, 'USD')}">0.00 USD</div>
+                                </div>
+                                <span th:class="${@ui.payoutBadgeClass(payout.status)}" th:text="${@ui.statusLabel(payout.status)}"></span>
+                            </div>
+                        </div>
+
+                        <div class="empty-state" th:if="${payouts.isEmpty()}">
+                            Выплат пока нет. Запустите расчёт месяца в разделе Admin.
+                        </div>
+                    </article>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>

@@ -6,10 +6,13 @@
     <link rel="stylesheet" th:href="@{/app.css}">
 </head>
 <body>
-<div class="page" style="max-width: 640px; margin: 40px auto;">
-    <section class="panel">
+<div class="auth-page">
+    <section class="auth-card glass-panel">
+        <div class="eyebrow">Новый автор</div>
         <h2>Регистрация автора</h2>
-        <form th:action="@{/register}" method="post" th:object="${registerForm}" class="form-grid">
+        <p class="muted">Создайте аккаунт, чтобы загружать видео, отслеживать монетизацию и получать выплаты.</p>
+
+        <form th:action="@{/register}" method="post" th:object="${registerForm}" class="form-grid top-gap">
             <div>
                 <label>Логин</label>
                 <input type="text" th:field="*{username}" required>
@@ -28,12 +31,14 @@
                 <label>Название канала</label>
                 <input type="text" th:field="*{channelName}" required>
             </div>
-            <div>
+            <div class="full-width">
                 <label>Пароль</label>
                 <input type="password" th:field="*{password}" required>
             </div>
-            <button class="button" type="submit">Создать аккаунт</button>
-            <a class="button button-secondary" th:href="@{/login}">Назад ко входу</a>
+            <div class="auth-actions full-width">
+                <button class="button" type="submit">Создать аккаунт</button>
+                <a class="button button-secondary" th:href="@{/login}">Назад ко входу</a>
+            </div>
         </form>
     </section>
 </div>

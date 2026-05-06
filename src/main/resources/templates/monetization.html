@@ -7,33 +7,43 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content narrow">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <section class="panel">
-            <div class="eyebrow">Экран 6–7</div>
-            <h2>Выбор монетизации 💸</h2>
-            <p><strong th:text="${video.title}">Video</strong> — после успешной проверки авторских прав можно выбрать ad format.</p>
-            <div class="status-stack bottom-gap">
-                <span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span>
-                <span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span>
-                <span th:class="${@ui.badgeClass(video.uploadStatus)}" th:text="${@ui.statusLabel(video.uploadStatus)}"></span>
-            </div>
-            <form method="post" th:action="@{/videos/{id}/monetization(id=${video.id})}" th:object="${monetizationForm}" class="radio-list">
-                <label th:each="type : ${monetizationTypes}" class="radio-item">
-                    <input type="radio" th:field="*{monetizationType}" th:value="${type}">
-                    <span>
-                        <strong th:text="${type}">NONE</strong>
-                        <small th:text="${type.name() == 'NONE' ? 'Публикация без рекламы.' : 'Проверка advertiser-friendly правил выполнится автоматически.'}"></small>
-                    </span>
-                </label>
-                <div class="form-actions">
-                    <a class="button button-secondary" th:href="@{/videos/{id}(id=${video.id})}">Назад</a>
-                    <button class="button" type="submit">Сохранить и продолжить</button>
-                </div>
-            </form>
-        </section>
-    </main>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
+
+            <main class="content narrow">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
+
+                <section class="panel glass-panel">
+                    <div class="eyebrow">Экран 6–7</div>
+                    <h2>Выбор монетизации</h2>
+                    <p><strong th:text="${video.title}">Video</strong> — после успешной проверки авторских прав можно выбрать формат рекламы.</p>
+
+                    <div class="status-stack bottom-gap top-gap">
+                        <span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span>
+                        <span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span>
+                        <span th:class="${@ui.badgeClass(video.uploadStatus)}" th:text="${@ui.statusLabel(video.uploadStatus)}"></span>
+                    </div>
+
+                    <form method="post" th:action="@{/videos/{id}/monetization(id=${video.id})}" th:object="${monetizationForm}" class="radio-list top-gap">
+                        <label th:each="type : ${monetizationTypes}" class="radio-item glass-card">
+                            <input type="radio" th:field="*{monetizationType}" th:value="${type}">
+                            <span>
+                                <strong th:text="${type}">NONE</strong>
+                                <small th:text="${type.name() == 'NONE' ? 'Публикация без рекламы.' : 'Проверка advertiser-friendly правил выполнится автоматически.'}"></small>
+                            </span>
+                        </label>
+
+                        <div class="form-actions">
+                            <a class="button button-secondary" th:href="@{/videos/{id}(id=${video.id})}">Назад</a>
+                            <button class="button" type="submit">Сохранить и продолжить</button>
+                        </div>
+                    </form>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>

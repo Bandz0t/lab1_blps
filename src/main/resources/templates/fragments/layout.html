@@ -1,40 +1,78 @@
 <!DOCTYPE html>
 <html lang="ru" xmlns:th="http://www.thymeleaf.org">
 <body>
-<header th:fragment="header(currentPage, user)">
-    <div class="topbar">
-        <div>
-            <div class="eyebrow">Creator Studio</div>
-            <h1>Авторский кабинет канала</h1>
+<aside class="sidebar" th:fragment="sidebar(currentPage, user)">
+    <div class="sidebar-card glass-nav">
+        <div class="brand">
+            <div class="brand-mark">▶</div>
+            <div class="brand-copy">
+                <strong>Creator Studio</strong>
+                <span>YouTube monetization flow</span>
+            </div>
         </div>
-        <div class="topbar-meta">
-            <div><strong th:text="${user != null ? user.fullName : 'Demo Author'}">Demo Author</strong></div>
-            <div class="muted" th:text="${user != null ? user.channelName : 'Demo Channel'}">Demo Channel</div>
+
+        <nav class="side-nav">
+            <a th:href="@{/dashboard}" th:classappend="${currentPage == 'dashboard'} ? ' active'">
+                <span>Dashboard</span>
+                <span class="side-nav-badge">01</span>
+            </a>
+            <a th:href="@{/videos}" th:classappend="${currentPage == 'videos'} ? ' active'">
+                <span>Видео</span>
+                <span class="side-nav-badge">02</span>
+            </a>
+            <a th:href="@{/revenues}" th:classappend="${currentPage == 'revenues'} ? ' active'">
+                <span>Доходы</span>
+                <span class="side-nav-badge">03</span>
+            </a>
+            <a th:href="@{/payouts}" th:classappend="${currentPage == 'payouts'} ? ' active'">
+                <span>Выплаты</span>
+                <span class="side-nav-badge">04</span>
+            </a>
+            <a th:if="${user != null and (user.role == 'MODERATOR' or user.role == 'ADMIN')}"
+               th:href="@{/moderation}"
+               th:classappend="${currentPage == 'moderation'} ? ' active'">
+                <span>Модерация</span>
+                <span class="side-nav-badge">05</span>
+            </a>
+            <a th:if="${user != null and user.role == 'ADMIN'}"
+               th:href="@{/admin}"
+               th:classappend="${currentPage == 'admin'} ? ' active'">
+                <span>Admin</span>
+                <span class="side-nav-badge">06</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <p>Рабочее пространство автора, модератора и администратора в одном интерфейсе.</p>
+            <form th:action="@{/logout}" method="post">
+                <button class="button button-secondary" type="submit">Выйти</button>
+            </form>
         </div>
     </div>
-    <nav class="nav">
-        <a th:href="@{/dashboard}" th:classappend="${currentPage == 'dashboard'} ? ' active'">Dashboard</a>
-        <a th:href="@{/videos}" th:classappend="${currentPage == 'videos'} ? ' active'">Видео</a>
-        <a th:href="@{/revenues}" th:classappend="${currentPage == 'revenues'} ? ' active'">Доходы</a>
-        <a th:href="@{/payouts}" th:classappend="${currentPage == 'payouts'} ? ' active'">Выплаты</a>
-        <a th:if="${user != null and (user.role == 'MODERATOR' or user.role == 'ADMIN')}" th:href="@{/moderation}" th:classappend="${currentPage == 'moderation'} ? ' active'">Модерация</a>
-        <a th:if="${user != null and user.role == 'ADMIN'}" th:href="@{/admin}" th:classappend="${currentPage == 'admin'} ? ' active'">Admin</a>
-        <form th:action="@{/logout}" method="post" style="margin-left:auto;">
-            <button class="button button-secondary" type="submit">Выйти</button>
-        </form>
-    </nav>
+</aside>
+
+<header class="topbar glass-panel" th:fragment="topbar(user)">
+    <div>
+        <div class="eyebrow">Creator workspace</div>
+        <h1>Авторский кабинет канала</h1>
+        <p class="muted">Видео, модерация, монетизация и выплаты в едином рабочем процессе.</p>
+    </div>
+    <div class="topbar-meta">
+        <div><strong th:text="${user != null ? user.fullName : 'Demo Author'}">Demo Author</strong></div>
+        <div class="muted" th:text="${user != null ? user.channelName : 'Demo Channel'}">Demo Channel</div>
+    </div>
 </header>
 
 <div th:fragment="alerts">
     <div class="alert alert-success" th:if="${successMessage}">
-        <span class="alert-icon">✅</span>
+        <span class="alert-icon">●</span>
         <div class="alert-body">
             <span class="alert-title">Успешно</span>
             <span th:text="${successMessage}"></span>
         </div>
     </div>
     <div class="alert alert-danger" th:if="${errorMessage}">
-        <span class="alert-icon">⚠️</span>
+        <span class="alert-icon">●</span>
         <div class="alert-body">
             <span class="alert-title">Ошибка</span>
             <span th:text="${errorMessage}"></span>

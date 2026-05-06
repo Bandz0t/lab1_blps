@@ -7,61 +7,72 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <section class="panel">
-            <div class="panel-header">
-                <div>
-                    <div class="eyebrow">Экран 3</div>
-                    <h2>Список видео автора 📼</h2>
-                </div>
-                <a class="button" th:href="@{/videos/create}">Загрузить видео</a>
-            </div>
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Название</th>
-                    <th>Формат</th>
-                    <th>Upload</th>
-                    <th>Validation</th>
-                    <th>Copyright</th>
-                    <th>Monetization</th>
-                    <th>Создано</th>
-                    <th>Действия</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="video : ${videos}">
-                    <td th:text="${video.id}">1</td>
-                    <td>
-                        <div class="table-title" th:text="${video.title}">Title</div>
-                        <div class="muted" th:text="${@ui.humanStep(@ui.resolveCurrentStep(video))}">Current step</div>
-                    </td>
-                    <td th:text="${video.format}">mp4</td>
-                    <td><span th:class="${@ui.badgeClass(video.uploadStatus)}" th:text="${@ui.statusLabel(video.uploadStatus)}"></span></td>
-                    <td><span th:class="${@ui.badgeClass(video.validationStatus)}" th:text="${@ui.statusLabel(video.validationStatus)}"></span></td>
-                    <td><span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span></td>
-                    <td><span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span></td>
-                    <td th:text="${@ui.formatDateTime(video.createdAt)}">18.03.2026</td>
-                    <td>
-                        <div class="actions-column">
-                            <a th:href="@{/videos/{id}(id=${video.id})}">Открыть</a>
-                            <a th:href="@{/videos/{id}/stream(id=${video.id})}" target="_blank">Смотреть</a>
-                            <a th:href="@{/videos/{id}/edit(id=${video.id})}">Редактировать</a>
-                            <a th:href="@{/videos/{id}/monetization(id=${video.id})}">Монетизация</a>
-                            <a th:href="@{/processes/{videoId}(videoId=${video.id})}">Детали</a>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
+
+            <main class="content">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
+
+                <section class="panel glass-panel">
+                    <div class="panel-header">
+                        <div>
+                            <div class="eyebrow">Экран 3</div>
+                            <h2>Список видео автора</h2>
+                            <p class="metric-note">Все ролики с ключевыми статусами процесса публикации и монетизации.</p>
                         </div>
-                    </td>
-                </tr>
-                <tr th:if="${videos.isEmpty()}">
-                    <td colspan="9">Видео пока нет.</td>
-                </tr>
-                </tbody>
-            </table>
-        </section>
-    </main>
+                        <a class="button" th:href="@{/videos/create}">Загрузить видео</a>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Название</th>
+                                <th>Формат</th>
+                                <th>Upload</th>
+                                <th>Validation</th>
+                                <th>Copyright</th>
+                                <th>Monetization</th>
+                                <th>Создано</th>
+                                <th>Действия</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="video : ${videos}">
+                                <td th:text="${video.id}">1</td>
+                                <td>
+                                    <div class="table-title" th:text="${video.title}">Title</div>
+                                    <div class="muted" th:text="${@ui.resolveCurrentStep(video)}">Current step</div>
+                                </td>
+                                <td th:text="${video.format}">mp4</td>
+                                <td><span th:class="${@ui.badgeClass(video.uploadStatus)}" th:text="${@ui.statusLabel(video.uploadStatus)}"></span></td>
+                                <td><span th:class="${@ui.badgeClass(video.validationStatus)}" th:text="${@ui.statusLabel(video.validationStatus)}"></span></td>
+                                <td><span th:class="${@ui.badgeClass(video.copyrightStatus)}" th:text="${@ui.statusLabel(video.copyrightStatus)}"></span></td>
+                                <td><span th:class="${@ui.badgeClass(video.monetizationStatus)}" th:text="${@ui.statusLabel(video.monetizationStatus)}"></span></td>
+                                <td th:text="${@ui.formatDateTime(video.createdAt)}">18.03.2026</td>
+                                <td>
+                                    <div class="actions-column">
+                                        <a th:href="@{/videos/{id}(id=${video.id})}">Открыть</a>
+                                        <a th:href="@{/videos/{id}/stream(id=${video.id})}" target="_blank">Смотреть</a>
+                                        <a th:href="@{/videos/{id}/edit(id=${video.id})}">Редактировать</a>
+                                        <a th:href="@{/videos/{id}/monetization(id=${video.id})}">Монетизация</a>
+                                        <a th:href="@{/processes/{videoId}(videoId=${video.id})}">Детали</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${videos.isEmpty()}">
+                                <td colspan="9">Видео пока нет.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>

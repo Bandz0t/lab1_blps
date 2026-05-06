@@ -7,38 +7,55 @@
 </head>
 <body>
 <div class="page">
-    <header th:replace="~{fragments/layout :: header(${currentPage}, ${user})}"></header>
-    <main class="content">
-        <div th:replace="~{fragments/layout :: alerts}"></div>
-        <section class="panel">
-            <div class="eyebrow">Экран 9</div>
-            <h2>История выплат 💳</h2>
-            <table>
-                <thead>
-                <tr>
-                    <th>Период</th>
-                    <th>Сумма</th>
-                    <th>Статус</th>
-                    <th>Дата обработки</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="payout : ${payouts}">
-                    <td>
-                        <a th:href="@{/revenues(year=${payout.periodYear}, month=${payout.periodMonth})}"
-                           th:text="${payout.periodMonth + '/' + payout.periodYear}">3/2026</a>
-                    </td>
-                    <td th:text="${@ui.money(payout.totalAmount, 'USD')}">0.00 USD</td>
-                    <td><span th:class="${@ui.badgeClass(payout.status)}" th:text="${@ui.statusLabel(payout.status)}"></span></td>
-                    <td th:text="${@ui.formatDateTime(payout.processedAt)}">18.03.2026</td>
-                </tr>
-                <tr th:if="${payouts.isEmpty()}">
-                    <td colspan="4">Выплат еще нет.</td>
-                </tr>
-                </tbody>
-            </table>
-        </section>
-    </main>
+    <div class="page-shell">
+        <aside th:replace="~{fragments/layout :: sidebar(${currentPage}, ${user})}"></aside>
+        <div class="main-column">
+            <header th:replace="~{fragments/layout :: topbar(${user})}"></header>
+
+            <main class="content">
+                <div th:replace="~{fragments/layout :: alerts}"></div>
+
+                <section class="panel glass-panel">
+                    <div class="panel-header">
+                        <div>
+                            <div class="eyebrow">Экран 9</div>
+                            <h2>История выплат</h2>
+                            <p class="metric-note">Расчётные периоды, суммы и статус обработки выплат.</p>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Период</th>
+                                <th>Сумма</th>
+                                <th>Статус</th>
+                                <th>Дата обработки</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="payout : ${payouts}">
+                                <td>
+                                    <a th:href="@{/revenues(year=${payout.periodYear}, month=${payout.periodMonth})}"
+                                       th:text="${payout.periodMonth + '/' + payout.periodYear}">3/2026</a>
+                                </td>
+                                <td th:text="${@ui.money(payout.totalAmount, 'USD')}">0.00 USD</td>
+                                <td>
+                                    <span th:class="${@ui.badgeClass(payout.status)}" th:text="${@ui.statusLabel(payout.status)}"></span>
+                                </td>
+                                <td th:text="${payout.processedAt != null ? @ui.formatDateTime(payout.processedAt) : '—'}">18.03.2026</td>
+                            </tr>
+                            <tr th:if="${payouts.isEmpty()}">
+                                <td colspan="4">Выплат ещё нет.</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
 </div>
 </body>
 </html>
