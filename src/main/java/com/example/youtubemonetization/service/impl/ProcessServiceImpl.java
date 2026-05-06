@@ -1,5 +1,9 @@
 package com.example.youtubemonetization.service.impl;
 
+import com.example.youtubemonetization.config.messaging.KafkaTopicProperties;
+import com.example.youtubemonetization.dto.event.MonthlyPayoutRequestedEvent;
+import com.example.youtubemonetization.dto.event.VideoProcessingRequestedEvent;
+import com.example.youtubemonetization.dto.response.AsyncProcessResponse;
 import com.example.youtubemonetization.dto.response.MonthlyProcessResponse;
 import com.example.youtubemonetization.dto.response.PayoutResponse;
 import com.example.youtubemonetization.dto.response.ProcessStateResponse;
@@ -18,11 +22,14 @@ import com.example.youtubemonetization.service.ProcessService;
 import com.example.youtubemonetization.service.RevenueService;
 import com.example.youtubemonetization.service.ValidationService;
 import com.example.youtubemonetization.service.VideoDataService;
+import com.example.youtubemonetization.service.messaging.OutboxEventService;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +47,11 @@ public class ProcessServiceImpl implements ProcessService {
     private final PayoutApplicationService payoutApplicationService;
     private final RevenueMapper revenueMapper;
     private final PayoutMapper payoutMapper;
+    private final OutboxEventService outboxEventService;
+    private final KafkaTopicProperties topicProperties;
+
+    @Value("${app.node-id:local-node}")
+    private String nodeId;
 
     @Override
     public void startVideoUploadProcess(Long videoId) {
@@ -48,11 +60,11 @@ public class ProcessServiceImpl implements ProcessService {
             video.setProcessInstanceId(UUID.randomUUID().toString());
             videoDataService.save(video);
         }
-        validationService.validateVideo(videoId);
-        Video validatedVideo = videoDataService.getById(videoId);
-        if (validatedVideo.getValidationStatus() == ValidationStatus.PASSED) {
-            copyrightService.processAutomaticCopyrightCheck(videoId);
-        }
+        outboxEventService.enqueueVideoProcessingRequestedEvent(VideoProcessingRequestedEvent.builder()
+                .videoId(videoId)
+                .requestedByNode(nodeId)
+                .requestedAt(LocalDateTime.now())
+                .build());
     }
 
     @Override
@@ -73,11 +85,11 @@ public class ProcessServiceImpl implements ProcessService {
     public ProcessStateResponse continueProcess(Long videoId) {
         Video video = videoDataService.getById(videoId);
         if (video.getValidationStatus() == ValidationStatus.PENDING) {
-            validationService.validateVideo(videoId);
-            Video validatedVideo = videoDataService.getById(videoId);
-            if (validatedVideo.getValidationStatus() == ValidationStatus.PASSED) {
-                copyrightService.processAutomaticCopyrightCheck(videoId);
-            }
+            outboxEventService.enqueueVideoProcessingRequestedEvent(VideoProcessingRequestedEvent.builder()
+                    .videoId(videoId)
+                    .requestedByNode(nodeId)
+                    .requestedAt(LocalDateTime.now())
+                    .build());
             return getProcessState(videoId);
         }
         throw new IllegalProcessStateException("Процесс видео id=" + videoId + " не требует технического продолжения");
@@ -97,6 +109,23 @@ public class ProcessServiceImpl implements ProcessService {
                 .createdPayouts(payouts.size())
                 .revenues(revenueResponses)
                 .payouts(payoutResponses)
+                .build();
+    }
+
+    @Override
+    public AsyncProcessResponse requestMonthlyRevenueProcess(Optional<Integer> year, Optional<Integer> month) {
+        YearMonth period = YearMonth.of(year.orElse(YearMonth.now().getYear()), month.orElse(YearMonth.now().getMonthValue()));
+        outboxEventService.enqueueMonthlyPayoutRequestedEvent(MonthlyPayoutRequestedEvent.builder()
+                .year(period.getYear())
+                .month(period.getMonthValue())
+                .requestedByNode(nodeId)
+                .requestedAt(LocalDateTime.now())
+                .build());
+        return AsyncProcessResponse.builder()
+                .status("QUEUED")
+                .topic(topicProperties.getMonthlyPayoutRequested())
+                .periodYear(period.getYear())
+                .periodMonth(period.getMonthValue())
                 .build();
     }
 

@@ -45,16 +45,98 @@ services:
       - "9001:9001"
     volumes:
       - minio_data:/data
-  redis:
-    image: redis:7-alpine
-    container_name: youtube_monetization_redis
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: youtube_monetization_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_4LW_COMMANDS_WHITELIST: srvr,ruok
     ports:
-      - "6379:6379"
+      - "2181:2181"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "echo srvr | nc localhost 2181 | grep -q 'Mode:'"]
       interval: 10s
       timeout: 5s
       retries: 5
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: youtube_monetization_kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_INTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092 >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: youtube_monetization_kafka_init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    command:
+      - /bin/sh
+      - -c
+      - |
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic video.processing.requested --partitions 2 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic video.processing.completed --partitions 2 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic moderation.decision --partitions 2 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic monthly.payout.requested --partitions 2 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payout.registration.requested --partitions 2 --replication-factor 1
+        kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payout.registration.completed --partitions 2 --replication-factor 1
+  app_node_1:
+    build: .
+    container_name: youtube_monetization_app_node_1
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres_outbox:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      APP_NODE_ID: app-node-1
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/youtube_monetization
+      APP_OUTBOX_DATASOURCE_URL: jdbc:postgresql://postgres_outbox:5432/youtube_monetization_outbox
+      STORAGE_MINIO_ENDPOINT: http://minio:9000
+      SERVER_PORT: 8080
+    ports:
+      - "8081:8080"
+  app_node_2:
+    build: .
+    container_name: youtube_monetization_app_node_2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      postgres_outbox:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      APP_NODE_ID: app-node-2
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/youtube_monetization
+      APP_OUTBOX_DATASOURCE_URL: jdbc:postgresql://postgres_outbox:5432/youtube_monetization_outbox
+      STORAGE_MINIO_ENDPOINT: http://minio:9000
+      SERVER_PORT: 8080
+    ports:
+      - "8082:8080"
 
 volumes:
   postgres_data:

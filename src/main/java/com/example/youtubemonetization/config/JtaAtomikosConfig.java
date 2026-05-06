@@ -74,4 +74,10 @@ public class JtaAtomikosConfig {
     public JdbcTemplate outboxJdbcTemplate(@Qualifier("outboxDataSource") DataSource outboxDataSource) {
         return new JdbcTemplate(outboxDataSource);
     }
+
+    @Bean(name = "jdbcTemplate")
+    @Primary
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
 }

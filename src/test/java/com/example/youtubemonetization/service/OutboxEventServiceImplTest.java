@@ -44,7 +44,7 @@ class OutboxEventServiceImplTest {
         assertThat(claimed.getChannel()).isEqualTo("moderation.decision");
         assertThat(claimed.getPayload()).contains("\"videoId\":" + videoId);
 
-        outboxEventService.markFailed(claimed.getId(), "redis down");
+        outboxEventService.markFailed(claimed.getId(), "kafka down");
 
         OutboxEvent retried = findByAggregateId(outboxEventService.getPendingEvents(), videoId);
         assertThat(retried.getStatus()).isEqualTo(OutboxEventStatus.PROCESSING);

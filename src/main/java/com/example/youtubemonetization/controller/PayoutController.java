@@ -1,6 +1,7 @@
 package com.example.youtubemonetization.controller;
 
 import com.example.youtubemonetization.dto.request.MonthlyProcessRequest;
+import com.example.youtubemonetization.dto.response.AsyncProcessResponse;
 import com.example.youtubemonetization.dto.response.MonthlyProcessResponse;
 import com.example.youtubemonetization.dto.response.PayoutResponse;
 import com.example.youtubemonetization.mapper.PayoutMapper;
@@ -34,6 +35,14 @@ public class PayoutController {
     @PostMapping("/payouts/process-monthly")
     public MonthlyProcessResponse processMonthly(@Valid @RequestBody(required = false) MonthlyProcessRequest request) {
         return processService.runMonthlyRevenueProcess(
+                request == null ? Optional.empty() : Optional.ofNullable(request.getYear()),
+                request == null ? Optional.empty() : Optional.ofNullable(request.getMonth())
+        );
+    }
+
+    @PostMapping("/payouts/process-monthly/async")
+    public AsyncProcessResponse processMonthlyAsync(@Valid @RequestBody(required = false) MonthlyProcessRequest request) {
+        return processService.requestMonthlyRevenueProcess(
                 request == null ? Optional.empty() : Optional.ofNullable(request.getYear()),
                 request == null ? Optional.empty() : Optional.ofNullable(request.getMonth())
         );

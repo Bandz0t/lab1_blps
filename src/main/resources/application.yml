@@ -28,12 +28,22 @@ spring:
   jta:
     enabled: true
 
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      repositories:
-        enabled: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      properties:
+        enable.idempotence: true
+        acks: all
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:youtube-monetization-workers}
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+    listener:
+      ack-mode: record
 
 storage:
   minio-enabled: true
@@ -62,8 +72,29 @@ security:
     ttl-minutes: 60
 
 app:
-  redis:
+  node-id: ${APP_NODE_ID:local-node}
+  kafka:
     enabled: true
+    consumers:
+      enabled: true
+    topics:
+      video-processing-requested: video.processing.requested
+      video-processing-completed: video.processing.completed
+      moderation-decision: moderation.decision
+      monthly-payout-requested: monthly.payout.requested
+      payout-registration-requested: payout.registration.requested
+      payout-registration-completed: payout.registration.completed
+    producer:
+      send-timeout-seconds: 10
+  scheduler:
+    monthly-payout:
+      enabled: true
+      cron: "0 0 3 1 * *"
+      lock-name: monthly-payout-scheduler
+      lock-ttl-seconds: 300
+    payout-registration-retry:
+      enabled: true
+      fixed-delay-ms: 60000
   outbox:
     datasource:
       url: jdbc:postgresql://127.0.0.1:5433/youtube_monetization_outbox

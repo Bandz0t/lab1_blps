@@ -53,6 +53,12 @@ public class OutboxNonJtaDataSourceConfig {
         return new JdbcTemplate(outboxDataSource);
     }
 
+    @Bean(name = "jdbcTemplate")
+    @Primary
+    public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
     @Bean
     @Primary
     public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory) {

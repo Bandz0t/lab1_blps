@@ -16,4 +16,7 @@ public class PayoutResponse {
     private BigDecimal totalAmount;
     private PayoutStatus status;
     private LocalDateTime processedAt;
+    private String externalPaymentId;
+    private Integer attempts;
+    private String lastError;
 }

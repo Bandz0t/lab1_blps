@@ -52,6 +52,15 @@ public class Payout {
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
 
+    @Column(name = "external_payment_id", length = 100)
+    private String externalPaymentId;
+
+    @Column(nullable = false)
+    private Integer attempts = 0;
+
+    @Column(name = "last_error")
+    private String lastError;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -59,6 +68,9 @@ public class Payout {
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+        if (attempts == null) {
+            attempts = 0;
         }
     }
 }

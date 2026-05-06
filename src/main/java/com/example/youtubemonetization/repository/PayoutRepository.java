@@ -12,5 +12,7 @@ public interface PayoutRepository extends JpaRepository<Payout, Long> {
 
     List<Payout> findByStatus(PayoutStatus status);
 
+    List<Payout> findByStatusInAndAttemptsLessThan(List<PayoutStatus> statuses, Integer attempts);
+
     Optional<Payout> findByUserIdAndPeriodYearAndPeriodMonth(Long userId, Integer periodYear, Integer periodMonth);
 }
