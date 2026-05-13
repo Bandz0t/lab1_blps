@@ -16,8 +16,12 @@ import javax.security.auth.Subject;
 class PaymentEisManagedConnection implements ManagedConnection {
 
     private final List<ConnectionEventListener> listeners = new CopyOnWriteArrayList<>();
-    private final PaymentEisConnectionImpl connection = new PaymentEisConnectionImpl();
+    private final PaymentEisConnection connection;
     private PrintWriter logWriter;
+
+    PaymentEisManagedConnection(PaymentEisConnection connection) {
+        this.connection = connection;
+    }
 
     @Override
     public Object getConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) {
@@ -26,7 +30,10 @@ class PaymentEisManagedConnection implements ManagedConnection {
 
     @Override
     public void destroy() {
-        connection.invalidate();
+        try {
+            connection.close();
+        } catch (ResourceException ignored) {
+        }
         listeners.clear();
     }
 

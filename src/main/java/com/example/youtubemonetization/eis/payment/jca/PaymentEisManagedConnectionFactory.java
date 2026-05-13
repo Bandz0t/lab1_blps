@@ -14,6 +14,15 @@ import javax.security.auth.Subject;
 public class PaymentEisManagedConnectionFactory implements ManagedConnectionFactory, Serializable {
 
     private PrintWriter logWriter;
+    private final PaymentEisConnectionProvider connectionProvider;
+
+    public PaymentEisManagedConnectionFactory() {
+        this(PaymentEisConnectionImpl::new);
+    }
+
+    public PaymentEisManagedConnectionFactory(PaymentEisConnectionProvider connectionProvider) {
+        this.connectionProvider = connectionProvider;
+    }
 
     @Override
     public Object createConnectionFactory(ConnectionManager connectionManager) {
@@ -30,8 +39,9 @@ public class PaymentEisManagedConnectionFactory implements ManagedConnectionFact
     }
 
     @Override
-    public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo) {
-        return new PaymentEisManagedConnection();
+    public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo connectionRequestInfo)
+            throws ResourceException {
+        return new PaymentEisManagedConnection(connectionProvider.createConnection());
     }
 
     @Override

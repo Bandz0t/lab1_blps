@@ -114,3 +114,14 @@ app:
       channel: moderation.decision
     outbox:
       poll-delay-ms: 1000
+  payment-eis:
+    provider: ${PAYMENT_EIS_PROVIDER:mock}
+    yookassa:
+      base-url: ${YOOKASSA_BASE_URL:https://api.yookassa.ru}
+      agent-id: ${YOOKASSA_PAYOUT_AGENT_ID:516177}
+      secret-key: ${YOOKASSA_PAYOUT_SECRET_KEY:}
+      destination-type: yoo_money
+      account-number: ${YOOKASSA_TEST_YOOMONEY_WALLET:}
+      currency: RUB
+      description-prefix: YouTube monetization payout
+      timeout-seconds: 15
