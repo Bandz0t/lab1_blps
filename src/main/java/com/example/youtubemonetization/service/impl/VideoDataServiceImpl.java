@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(transactionManager = "transactionManager")
 public class VideoDataServiceImpl implements VideoDataService {
 
     private final VideoRepository videoRepository;
@@ -24,6 +24,11 @@ public class VideoDataServiceImpl implements VideoDataService {
     @Override
     public Video save(Video video) {
         return videoRepository.save(video);
+    }
+
+    @Override
+    public Video saveAndFlush(Video video) {
+        return videoRepository.saveAndFlush(video);
     }
 
     @Override

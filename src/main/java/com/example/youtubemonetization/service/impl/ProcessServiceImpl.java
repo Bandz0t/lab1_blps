@@ -1,7 +1,6 @@
 package com.example.youtubemonetization.service.impl;
 
 import com.example.youtubemonetization.config.messaging.KafkaTopicProperties;
-import com.example.youtubemonetization.dto.event.MonthlyPayoutRequestedEvent;
 import com.example.youtubemonetization.dto.event.VideoProcessingRequestedEvent;
 import com.example.youtubemonetization.dto.response.AsyncProcessResponse;
 import com.example.youtubemonetization.dto.response.MonthlyProcessResponse;
@@ -17,18 +16,22 @@ import com.example.youtubemonetization.enums.ValidationStatus;
 import com.example.youtubemonetization.exception.IllegalProcessStateException;
 import com.example.youtubemonetization.mapper.PayoutMapper;
 import com.example.youtubemonetization.mapper.RevenueMapper;
-import com.example.youtubemonetization.service.CopyrightService;
 import com.example.youtubemonetization.service.ProcessService;
 import com.example.youtubemonetization.service.RevenueService;
-import com.example.youtubemonetization.service.ValidationService;
 import com.example.youtubemonetization.service.VideoDataService;
+import com.example.youtubemonetization.service.camunda.CamundaBusinessKeys;
 import com.example.youtubemonetization.service.messaging.OutboxEventService;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.task.Task;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,17 +41,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ProcessServiceImpl implements ProcessService {
 
-    private static final String BPMN_PROCESS_KEY = "youtube_monetization_process";
-
     private final VideoDataService videoDataService;
-    private final ValidationService validationService;
-    private final CopyrightService copyrightService;
     private final RevenueService revenueService;
     private final PayoutApplicationService payoutApplicationService;
     private final RevenueMapper revenueMapper;
     private final PayoutMapper payoutMapper;
     private final OutboxEventService outboxEventService;
     private final KafkaTopicProperties topicProperties;
+    private final RuntimeService runtimeService;
+    private final TaskService taskService;
 
     @Value("${app.node-id:local-node}")
     private String nodeId;
@@ -56,15 +57,26 @@ public class ProcessServiceImpl implements ProcessService {
     @Override
     public void startVideoUploadProcess(Long videoId) {
         Video video = videoDataService.getById(videoId);
-        if (video.getProcessInstanceId() == null || video.getProcessInstanceId().isBlank()) {
-            video.setProcessInstanceId(UUID.randomUUID().toString());
+        ProcessInstance existing = findActiveVideoProcess(videoId);
+        if (existing != null) {
+            video.setProcessInstanceId(existing.getId());
             videoDataService.save(video);
+            return;
         }
-        outboxEventService.enqueueVideoProcessingRequestedEvent(VideoProcessingRequestedEvent.builder()
-                .videoId(videoId)
-                .requestedByNode(nodeId)
-                .requestedAt(LocalDateTime.now())
-                .build());
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("videoId", videoId);
+        variables.put("authorId", video.getAuthor().getId());
+        variables.put("validationPassed", false);
+        variables.put("copyrightCleared", false);
+
+        ProcessInstance instance = runtimeService.startProcessInstanceByKey(
+                CamundaBusinessKeys.VIDEO_PROCESS_KEY,
+                CamundaBusinessKeys.video(videoId),
+                variables
+        );
+        video.setProcessInstanceId(instance.getId());
+        videoDataService.save(video);
     }
 
     @Override
@@ -72,19 +84,21 @@ public class ProcessServiceImpl implements ProcessService {
     public ProcessStateResponse getProcessState(Long videoId) {
         Video video = videoDataService.getById(videoId);
         String currentStep = resolveCurrentStep(videoId);
+        ProcessInstance activeInstance = findActiveVideoProcess(videoId);
         return ProcessStateResponse.builder()
                 .videoId(videoId)
-                .processInstanceId(video.getProcessInstanceId())
+                .processInstanceId(activeInstance == null ? video.getProcessInstanceId() : activeInstance.getId())
                 .currentStep(currentStep)
-                .bpmnProcessKey(BPMN_PROCESS_KEY)
-                .active(video.getUploadStatus() != UploadStatus.REJECTED && video.getPublishedAt() == null)
+                .bpmnProcessKey(CamundaBusinessKeys.VIDEO_PROCESS_KEY)
+                .active(activeInstance != null || (video.getUploadStatus() != UploadStatus.REJECTED && video.getPublishedAt() == null))
                 .build();
     }
 
     @Override
     public ProcessStateResponse continueProcess(Long videoId) {
         Video video = videoDataService.getById(videoId);
-        if (video.getValidationStatus() == ValidationStatus.PENDING) {
+        ProcessInstance activeInstance = findActiveVideoProcess(videoId);
+        if (activeInstance != null && video.getValidationStatus() == ValidationStatus.PENDING) {
             outboxEventService.enqueueVideoProcessingRequestedEvent(VideoProcessingRequestedEvent.builder()
                     .videoId(videoId)
                     .requestedByNode(nodeId)
@@ -115,12 +129,23 @@ public class ProcessServiceImpl implements ProcessService {
     @Override
     public AsyncProcessResponse requestMonthlyRevenueProcess(Optional<Integer> year, Optional<Integer> month) {
         YearMonth period = YearMonth.of(year.orElse(YearMonth.now().getYear()), month.orElse(YearMonth.now().getMonthValue()));
-        outboxEventService.enqueueMonthlyPayoutRequestedEvent(MonthlyPayoutRequestedEvent.builder()
-                .year(period.getYear())
-                .month(period.getMonthValue())
-                .requestedByNode(nodeId)
-                .requestedAt(LocalDateTime.now())
-                .build());
+        String businessKey = CamundaBusinessKeys.monthlyPayout(period);
+        ProcessInstance activeInstance = runtimeService.createProcessInstanceQuery()
+                .processDefinitionKey(CamundaBusinessKeys.MONTHLY_PAYOUT_PROCESS_KEY)
+                .processInstanceBusinessKey(businessKey)
+                .active()
+                .singleResult();
+        if (activeInstance == null) {
+            Map<String, Object> variables = Map.of(
+                    "periodYear", period.getYear(),
+                    "periodMonth", period.getMonthValue()
+            );
+            runtimeService.startProcessInstanceByKey(
+                    CamundaBusinessKeys.MONTHLY_PAYOUT_PROCESS_KEY,
+                    businessKey,
+                    variables
+            );
+        }
         return AsyncProcessResponse.builder()
                 .status("QUEUED")
                 .topic(topicProperties.getMonthlyPayoutRequested())
@@ -132,6 +157,24 @@ public class ProcessServiceImpl implements ProcessService {
     @Override
     @Transactional(readOnly = true)
     public String resolveCurrentStep(Long videoId) {
+        Task activeTask = taskService.createTaskQuery()
+                .processInstanceBusinessKey(CamundaBusinessKeys.video(videoId))
+                .active()
+                .singleResult();
+        if (activeTask != null) {
+            if ("reviewCopyrightTask".equals(activeTask.getTaskDefinitionKey())) {
+                return "WAITING_FOR_COPYRIGHT_CHECK";
+            }
+            if ("chooseMonetizationTask".equals(activeTask.getTaskDefinitionKey())) {
+                return "WAITING_FOR_MONETIZATION_SELECTION";
+            }
+            return activeTask.getTaskDefinitionKey();
+        }
+        ProcessInstance activeInstance = findActiveVideoProcess(videoId);
+        if (activeInstance != null) {
+            return "TECHNICAL_VALIDATION";
+        }
+
         Video video = videoDataService.getById(videoId);
         if (video.getUploadStatus() == UploadStatus.REJECTED || video.getValidationStatus() == ValidationStatus.FAILED) {
             return "REJECTED";
@@ -152,5 +195,13 @@ public class ProcessServiceImpl implements ProcessService {
             return "WAITING_FOR_MONETIZATION_SELECTION";
         }
         return "IN_PROGRESS";
+    }
+
+    private ProcessInstance findActiveVideoProcess(Long videoId) {
+        return runtimeService.createProcessInstanceQuery()
+                .processDefinitionKey(CamundaBusinessKeys.VIDEO_PROCESS_KEY)
+                .processInstanceBusinessKey(CamundaBusinessKeys.video(videoId))
+                .active()
+                .singleResult();
     }
 }

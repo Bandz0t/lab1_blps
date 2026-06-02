@@ -3,6 +3,7 @@ package com.example.youtubemonetization.service.messaging;
 import com.example.youtubemonetization.dto.event.MonthlyPayoutRequestedEvent;
 import com.example.youtubemonetization.exception.ConflictException;
 import com.example.youtubemonetization.service.ProcessService;
+import com.example.youtubemonetization.service.camunda.CamundaProcessCorrelationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ public class MonthlyPayoutConsumer {
 
     private final ObjectMapper objectMapper;
     private final ProcessService processService;
+    private final CamundaProcessCorrelationService camundaProcessCorrelationService;
 
     @KafkaListener(
             topics = "${app.kafka.topics.monthly-payout-requested}",
@@ -28,8 +30,10 @@ public class MonthlyPayoutConsumer {
         MonthlyPayoutRequestedEvent event = objectMapper.readValue(payload, MonthlyPayoutRequestedEvent.class);
         try {
             processService.runMonthlyRevenueProcess(Optional.of(event.getYear()), Optional.of(event.getMonth()));
+            camundaProcessCorrelationService.correlateMonthlyPayoutCompleted(event.getYear(), event.getMonth());
             log.info("Monthly payout process completed: year={}, month={}", event.getYear(), event.getMonth());
         } catch (ConflictException exception) {
+            camundaProcessCorrelationService.correlateMonthlyPayoutCompleted(event.getYear(), event.getMonth());
             log.info(
                     "Monthly payout process already completed or partially exists: year={}, month={}, message={}",
                     event.getYear(),

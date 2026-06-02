@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(transactionManager = "transactionManager")
 public class VideoServiceImpl implements VideoService {
 
     private final VideoDataService videoDataService;
@@ -43,6 +43,9 @@ public class VideoServiceImpl implements VideoService {
         if (request.getSizeBytes() == null || request.getSizeBytes() <= 0) {
             throw new BusinessException("Размер файла должен быть положительным");
         }
+        if (request.getAuthorId() == null) {
+            throw new BusinessException("Author is required");
+        }
         User author = userDataService.getById(request.getAuthorId());
         Video video = new Video();
         video.setAuthor(author);
@@ -57,7 +60,10 @@ public class VideoServiceImpl implements VideoService {
         video.setCopyrightStatus(CopyrightStatus.PENDING);
         video.setMonetizationStatus(MonetizationStatus.PENDING);
         video.setMonetizationType(MonetizationType.NONE);
-        Video saved = videoDataService.save(video);
+        Video saved = videoDataService.saveAndFlush(video);
+        if (saved.getId() == null) {
+            throw new BusinessException("Video was saved without generated id");
+        }
         processService.startVideoUploadProcess(saved.getId());
         return videoDataService.getById(saved.getId());
     }
@@ -65,6 +71,9 @@ public class VideoServiceImpl implements VideoService {
     @Override
     @Transactional(readOnly = true)
     public Video getVideo(Long id) {
+        if (id == null) {
+            throw new BusinessException("Video id is required");
+        }
         return videoDataService.getById(id);
     }
 

@@ -18,6 +18,7 @@ import com.example.youtubemonetization.repository.ModerationRequestRepository;
 import com.example.youtubemonetization.service.ClaimDataService;
 import com.example.youtubemonetization.service.CopyrightService;
 import com.example.youtubemonetization.service.VideoDataService;
+import com.example.youtubemonetization.service.camunda.CamundaUserTaskBridge;
 import com.example.youtubemonetization.service.storage.StoredVideoObject;
 import com.example.youtubemonetization.service.storage.VideoStorageService;
 import java.io.File;
@@ -55,6 +56,7 @@ public class CopyrightServiceImpl implements CopyrightService {
     private final ClaimDataService claimDataService;
     private final ModerationRequestRepository moderationRequestRepository;
     private final VideoStorageService videoStorageService;
+    private final CamundaUserTaskBridge camundaUserTaskBridge;
 
     @Value("${copyright.banned-words:good,morning,sure,everybody}")
     private List<String> bannedWords;
@@ -76,13 +78,17 @@ public class CopyrightServiceImpl implements CopyrightService {
             video.setCopyrightStatus(CopyrightStatus.NEEDS_EDITING);
             video.setUploadStatus(UploadStatus.READY_FOR_REVIEW);
             ensureActiveModerationRequest(video);
-            return videoDataService.save(video);
+            Video saved = videoDataService.save(video);
+            camundaUserTaskBridge.completeCopyrightReview(videoId, request, true);
+            return saved;
         }
 
         closeOpenClaims(videoId);
         video.setCopyrightStatus(CopyrightStatus.CLEARED);
         ensureActiveModerationRequest(video);
-        return videoDataService.save(video);
+        Video saved = videoDataService.save(video);
+        camundaUserTaskBridge.completeCopyrightReview(videoId, request, true);
+        return saved;
     }
 
     @Override

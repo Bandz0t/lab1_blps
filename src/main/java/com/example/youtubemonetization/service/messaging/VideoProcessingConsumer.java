@@ -1,6 +1,7 @@
 package com.example.youtubemonetization.service.messaging;
 
 import com.example.youtubemonetization.dto.event.VideoProcessingRequestedEvent;
+import com.example.youtubemonetization.service.camunda.CamundaProcessCorrelationService;
 import com.example.youtubemonetization.service.impl.VideoProcessingWorkerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ public class VideoProcessingConsumer {
 
     private final ObjectMapper objectMapper;
     private final VideoProcessingWorkerService videoProcessingWorkerService;
+    private final CamundaProcessCorrelationService camundaProcessCorrelationService;
 
     @KafkaListener(
             topics = "${app.kafka.topics.video-processing-requested}",
@@ -26,5 +28,6 @@ public class VideoProcessingConsumer {
         VideoProcessingRequestedEvent event = objectMapper.readValue(payload, VideoProcessingRequestedEvent.class);
         log.info("Processing video async event: videoId={}, requestedBy={}", event.getVideoId(), event.getRequestedByNode());
         videoProcessingWorkerService.processVideo(event.getVideoId());
+        camundaProcessCorrelationService.correlateVideoProcessingCompleted(event.getVideoId());
     }
 }

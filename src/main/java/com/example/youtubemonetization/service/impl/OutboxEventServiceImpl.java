@@ -118,11 +118,13 @@ public class OutboxEventServiceImpl implements OutboxEventService {
     }
 
     @Override
+    @Transactional(transactionManager = "outboxTransactionManager")
     public List<OutboxEvent> getPendingEvents() {
         return outboxEventRepository.claimPending(100, Duration.ofSeconds(lockTtlSeconds));
     }
 
     @Override
+    @Transactional(transactionManager = "outboxTransactionManager")
     public void markSent(Long outboxEventId) {
         outboxEventRepository.findById(outboxEventId)
                 .orElseThrow(() -> new EntityNotFoundException("Outbox event not found: id=" + outboxEventId));
@@ -130,6 +132,7 @@ public class OutboxEventServiceImpl implements OutboxEventService {
     }
 
     @Override
+    @Transactional(transactionManager = "outboxTransactionManager")
     public void markFailed(Long outboxEventId, String errorMessage) {
         outboxEventRepository.findById(outboxEventId)
                 .orElseThrow(() -> new EntityNotFoundException("Outbox event not found: id=" + outboxEventId));

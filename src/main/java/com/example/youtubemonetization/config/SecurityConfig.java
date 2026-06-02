@@ -10,10 +10,14 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 
 @Configuration
 @RequiredArgsConstructor
@@ -29,10 +33,48 @@ public class SecurityConfig {
     }
 
     @Bean
+    public WebSecurityCustomizer camundaWebSecurityCustomizer() {
+        return web -> web.ignoring().requestMatchers(
+                "/camunda/**",
+                "/engine-rest/**",
+                "/api/admin/**",
+                "/api/cockpit/**",
+                "/api/engine/**",
+                "/api/tasklist/**",
+                "/api/welcome/**"
+        );
+    }
+
+    @Bean
     @Order(1)
+    public SecurityFilterChain camundaSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher(
+                        "/camunda/**",
+                        "/engine-rest/**",
+                        "/api/admin/**",
+                        "/api/cockpit/**",
+                        "/api/engine/**",
+                        "/api/tasklist/**",
+                        "/api/welcome/**"
+                )
+                .csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-                .securityMatcher("/api/**")
+                .securityMatcher(new AndRequestMatcher(
+                        new AntPathRequestMatcher("/api/**"),
+                        new NegatedRequestMatcher(new AntPathRequestMatcher("/api/admin/**")),
+                        new NegatedRequestMatcher(new AntPathRequestMatcher("/api/cockpit/**")),
+                        new NegatedRequestMatcher(new AntPathRequestMatcher("/api/engine/**")),
+                        new NegatedRequestMatcher(new AntPathRequestMatcher("/api/tasklist/**")),
+                        new NegatedRequestMatcher(new AntPathRequestMatcher("/api/welcome/**"))
+                ))
                 .userDetailsService(userDetailsService)
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -55,13 +97,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(2)
+    @Order(3)
     public SecurityFilterChain webSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .userDetailsService(userDetailsService)
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register", "/app.css").permitAll()
+                        .requestMatchers(
+                                "/camunda/**",
+                                "/engine-rest/**",
+                                "/api/admin/**",
+                                "/api/cockpit/**",
+                                "/api/engine/**",
+                                "/api/tasklist/**",
+                                "/api/welcome/**"
+                        ).permitAll()
                         .requestMatchers("/moderation/**").hasAnyRole("MODERATOR", "ADMIN")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

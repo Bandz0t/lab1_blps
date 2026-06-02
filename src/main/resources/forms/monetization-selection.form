@@ -1,0 +1,55 @@
+{
+  "components": [
+    {
+      "label": "Video ID",
+      "type": "textfield",
+      "id": "Field_videoId",
+      "key": "videoId",
+      "readonly": true
+    },
+    {
+      "label": "Monetization type",
+      "type": "select",
+      "id": "Field_monetizationType",
+      "key": "monetizationType",
+      "values": [
+        {
+          "label": "No monetization",
+          "value": "NONE"
+        },
+        {
+          "label": "All formats",
+          "value": "ALL_FORMATS"
+        },
+        {
+          "label": "Skippable ads",
+          "value": "SKIPPABLE_ADS"
+        },
+        {
+          "label": "Non-skippable ads",
+          "value": "NON_SKIPPABLE_ADS"
+        },
+        {
+          "label": "Bumper ads",
+          "value": "BUMPER_ADS"
+        },
+        {
+          "label": "Display ads",
+          "value": "DISPLAY_ADS"
+        }
+      ],
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "monetization-selection-form",
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.22.0",
+  "schemaVersion": 16,
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  }
+}

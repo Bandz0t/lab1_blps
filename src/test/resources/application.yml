@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: jdbc:h2:mem:testdb-${random.uuid};MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -35,7 +35,7 @@ app:
       enabled: false
   outbox:
     datasource:
-      url: jdbc:h2:mem:outboxdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      url: jdbc:h2:mem:outboxdb-${random.uuid};MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
       username: sa
       password:
       driver-class-name: org.h2.Driver
@@ -50,3 +50,16 @@ security:
   jwt:
     secret: dGhpcy1pcy12ZXJ5LXNlY3JldC1rZXktZm9yLWp3dCEh
     ttl-minutes: 60
+
+camunda:
+  bpm:
+    enabled: true
+    database:
+      type: postgres
+      schema-update: true
+    history-level: audit
+    job-execution:
+      enabled: false
+    deployment-resource-pattern:
+      - classpath:processes/*.bpmn
+      - classpath:forms/*.form

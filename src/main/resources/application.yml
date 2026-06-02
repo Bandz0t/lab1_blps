@@ -14,6 +14,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        transaction:
+          coordinator_class: jta
+          jta:
+            platform: org.hibernate.engine.transaction.jta.platform.internal.AtomikosJtaPlatform
     open-in-view: false
 
   flyway:
@@ -59,6 +63,23 @@ server:
 logging:
   level:
     org.flywaydb: info
+
+camunda:
+  bpm:
+    enabled: true
+    admin-user:
+      id: admin
+      password: admin
+      first-name: Camunda
+      last-name: Admin
+    database:
+      schema-update: true
+    history-level: full
+    job-execution:
+      enabled: true
+    deployment-resource-pattern:
+      - classpath:processes/*.bpmn
+      - classpath:forms/*.form
 
 copyright:
   vosk-model-path: models/vosk-model-small-en-us-0.15

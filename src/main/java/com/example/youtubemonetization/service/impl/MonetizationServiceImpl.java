@@ -8,6 +8,7 @@ import com.example.youtubemonetization.enums.UploadStatus;
 import com.example.youtubemonetization.exception.BusinessException;
 import com.example.youtubemonetization.service.MonetizationService;
 import com.example.youtubemonetization.service.VideoDataService;
+import com.example.youtubemonetization.service.camunda.CamundaUserTaskBridge;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MonetizationServiceImpl implements MonetizationService {
 
     private final VideoDataService videoDataService;
+    private final CamundaUserTaskBridge camundaUserTaskBridge;
 
     @Override
     public Video chooseMonetization(Long videoId, MonetizationType monetizationType) {
@@ -34,7 +36,9 @@ public class MonetizationServiceImpl implements MonetizationService {
         video.setMonetizationStatus(isMonetizationAllowed(video) ? MonetizationStatus.ENABLED : MonetizationStatus.DISABLED);
         video.setPublishedAt(LocalDateTime.now());
         video.setUploadStatus(UploadStatus.PUBLISHED);
-        return videoDataService.save(video);
+        Video saved = videoDataService.save(video);
+        camundaUserTaskBridge.completeMonetization(videoId, monetizationType, true);
+        return saved;
     }
 
     private boolean isMonetizationAllowed(Video video) {

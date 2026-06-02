@@ -1,0 +1,62 @@
+{
+  "components": [
+    {
+      "label": "Video ID",
+      "type": "textfield",
+      "id": "Field_videoId",
+      "key": "videoId",
+      "readonly": true
+    },
+    {
+      "label": "Copyright violation found",
+      "type": "checkbox",
+      "id": "Field_hasViolation",
+      "key": "hasViolation"
+    },
+    {
+      "label": "Claim type",
+      "type": "select",
+      "id": "Field_claimType",
+      "key": "claimType",
+      "values": [
+        {
+          "label": "Music",
+          "value": "MUSIC"
+        },
+        {
+          "label": "Video",
+          "value": "VIDEO"
+        },
+        {
+          "label": "Image",
+          "value": "IMAGE"
+        },
+        {
+          "label": "Other",
+          "value": "OTHER"
+        }
+      ]
+    },
+    {
+      "label": "Detected fragment",
+      "type": "textfield",
+      "id": "Field_detectedFragment",
+      "key": "detectedFragment"
+    },
+    {
+      "label": "Moderator comment",
+      "type": "textarea",
+      "id": "Field_description",
+      "key": "description"
+    }
+  ],
+  "type": "default",
+  "id": "copyright-review-form",
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.22.0",
+  "schemaVersion": 16,
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.44.0"
+  }
+}

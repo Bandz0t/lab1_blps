@@ -1,7 +1,10 @@
 package com.example.youtubemonetization.config;
 
 import com.atomikos.jdbc.AtomikosDataSourceBean;
+import com.atomikos.icatch.jta.UserTransactionImp;
+import com.atomikos.icatch.jta.UserTransactionManager;
 import java.util.Properties;
+import jakarta.transaction.UserTransaction;
 import javax.sql.DataSource;
 import org.postgresql.xa.PGXADataSource;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,12 +14,38 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.jta.JtaTransactionManager;
 
 @Configuration
 @EnableTransactionManagement
 @ConditionalOnProperty(name = "spring.jta.enabled", havingValue = "true", matchIfMissing = true)
 public class JtaAtomikosConfig {
+
+    @Bean(initMethod = "init", destroyMethod = "close")
+    public UserTransactionManager atomikosTransactionManager() {
+        UserTransactionManager userTransactionManager = new UserTransactionManager();
+        userTransactionManager.setForceShutdown(false);
+        return userTransactionManager;
+    }
+
+    @Bean
+    public UserTransaction atomikosUserTransaction() throws Throwable {
+        UserTransactionImp userTransaction = new UserTransactionImp();
+        userTransaction.setTransactionTimeout(300);
+        return userTransaction;
+    }
+
+    @Bean
+    @Primary
+    public PlatformTransactionManager transactionManager(
+            UserTransaction atomikosUserTransaction,
+            UserTransactionManager atomikosTransactionManager
+    ) {
+        return new JtaTransactionManager(atomikosUserTransaction, atomikosTransactionManager);
+    }
 
     @Bean(initMethod = "init", destroyMethod = "close")
     @Primary
@@ -73,6 +102,11 @@ public class JtaAtomikosConfig {
     @Bean(name = "outboxJdbcTemplate")
     public JdbcTemplate outboxJdbcTemplate(@Qualifier("outboxDataSource") DataSource outboxDataSource) {
         return new JdbcTemplate(outboxDataSource);
+    }
+
+    @Bean(name = "outboxTransactionManager")
+    public PlatformTransactionManager outboxTransactionManager(@Qualifier("outboxDataSource") DataSource outboxDataSource) {
+        return new DataSourceTransactionManager(outboxDataSource);
     }
 
     @Bean(name = "jdbcTemplate")

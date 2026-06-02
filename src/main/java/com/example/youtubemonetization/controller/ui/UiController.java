@@ -99,14 +99,13 @@ public class UiController {
             RedirectAttributes redirectAttributes
     ) {
         User user = currentUser(authentication);
-        request.setAuthorId(user.getId());
         if (videoFile == null || videoFile.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Выберите видеофайл для загрузки.");
             return "redirect:/videos/create";
         }
         try {
-            populateVideoRequestFromFile(request, videoFile);
-            Video video = videoService.createVideo(request);
+            VideoCreateRequest createRequest = buildServerSideCreateRequest(request, user, videoFile);
+            Video video = videoService.createVideo(createRequest);
             redirectAttributes.addFlashAttribute("successMessage", "Видео успешно создано. Запущен цикл публикации.");
             return "redirect:/videos/" + video.getId();
         } catch (RuntimeException ex) {
@@ -115,12 +114,19 @@ public class UiController {
         }
     }
 
-    private void populateVideoRequestFromFile(VideoCreateRequest request, MultipartFile videoFile) {
-        String objectKey = videoStorageService.upload(videoFile);
-        request.setFilePath(objectKey);
+    private VideoCreateRequest buildServerSideCreateRequest(VideoCreateRequest form, User user, MultipartFile videoFile) {
+        if (user.getId() == null) {
+            throw new IllegalStateException("Current user is not persisted");
+        }
+        VideoCreateRequest request = new VideoCreateRequest();
+        request.setAuthorId(user.getId());
+        request.setTitle(form.getTitle());
+        request.setDescription(form.getDescription());
         request.setSizeBytes(videoFile.getSize());
         request.setFormat(resolveFormat(videoFile));
         request.setDurationSeconds(videoMetadataService.extractDurationSeconds(videoFile));
+        request.setFilePath(videoStorageService.upload(videoFile));
+        return request;
     }
 
     private String resolveFormat(MultipartFile videoFile) {

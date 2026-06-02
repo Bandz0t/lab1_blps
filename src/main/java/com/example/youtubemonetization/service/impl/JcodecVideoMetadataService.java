@@ -4,6 +4,9 @@ import com.example.youtubemonetization.exception.BusinessException;
 import com.example.youtubemonetization.service.VideoMetadataService;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import org.jcodec.containers.mp4.MP4Util;
 import org.jcodec.containers.mp4.boxes.MovieBox;
 import org.springframework.stereotype.Service;
@@ -17,7 +20,9 @@ public class JcodecVideoMetadataService implements VideoMetadataService {
         File tempFile = null;
         try {
             tempFile = File.createTempFile("video-metadata-", ".tmp");
-            videoFile.transferTo(tempFile);
+            try (InputStream inputStream = videoFile.getInputStream()) {
+                Files.copy(inputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
 
             MovieBox movie = MP4Util.parseMovie(tempFile);
             if (movie == null || movie.getTimescale() <= 0) {

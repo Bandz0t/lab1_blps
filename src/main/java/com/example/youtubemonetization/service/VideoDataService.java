@@ -11,6 +11,8 @@ public interface VideoDataService {
 
     Video save(Video video);
 
+    Video saveAndFlush(Video video);
+
     Video getById(Long id);
 
     List<Video> findAll();
